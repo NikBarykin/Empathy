@@ -1,0 +1,24 @@
+from dataclasses import dataclass
+
+# from gender import Gender
+
+
+@dataclass
+class Agent:
+    user_id: int
+    user_name: str
+    age: int
+    gender: str
+
+    def rate(self, other) -> int:
+        if other.user_id == self.user_id or other.gender == self.gender:
+            return -1 # we don't want to date ourself or someone with the same gender
+
+        return 6 - abs(self.age - other.age)
+
+    def serialize(self) -> str:
+        return f"{self.user_id} {self.user_name} {self.age} {self.gender}"
+
+    def deserialize(serialized: str):
+        user_id, user_name, age, gender = serialized.split()
+        return Agent(int(user_id), user_name, int(age), gender)
