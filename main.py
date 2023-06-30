@@ -1,13 +1,14 @@
+import asyncio
 import logging
 
 import aiogram.utils.markdown as md
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import ParseMode
-from aiogram.utils import executor
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.context import FSMContext
+from aiogram.filters import Text
+from aiogram.fsm.state import State, StatesGroup
+
+from aiogram.filters.command import Command
 
 from random import randint
 
@@ -23,66 +24,95 @@ from setup import load_from_file
 
 from search import search
 
+import form
+import match
+
 storage = MemoryStorage()
 
 bot = Bot(token=TOKEN)
-dp = Dispatcher(bot, storage=storage)
+dp = Dispatcher(storage=storage)
 
 agents = dict()
 
 class Form(StatesGroup):
     age = State()
     gender = State()
+    picture = State()
     registered = State()
 
 
-@dp.message_handler(commands='start')
-async def cmd_start(msg: types.Message):
-    await Form.age.set()
-
+@dp.message(Command("start"))
+async def cmd_start(msg: types.Message, state: FSMContext):
+    await state.set_state(Form.age)
     await msg.reply("How old are you?")
 
 
-@dp.message_handler(state=Form.age)
+@dp.message(Form.age)
 async def process_age(msg: types.Message, state: FSMContext):
-    await Form.next()
+    await state.set_state(Form.gender)
 
     await state.update_data(age=int(msg.text))
 
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, selective=True)
-    markup.add("Male", "Female")
+    kb = [
+            [types.KeyboardButton(text="Male")],
+            [types.KeyboardButton(text="Female")]
+    ]
 
-    await msg.reply("What is your gender?", reply_markup=markup)
+    keyboard = types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+
+    await msg.reply("What is your gender?", reply_markup=keyboard)
 
 
 AVAILABLE_GENDERS = ['Male', 'Female']
 
-@dp.message_handler(
-        lambda message: message.text in AVAILABLE_GENDERS,
-        state=Form.gender)
+@dp.message(
+        Form.gender,
+        F.text.in_(AVAILABLE_GENDERS)
+)
 async def process_gender(msg: types.Message, state: FSMContext):
-
     await state.update_data(gender=msg.text)
+    await state.set_state(Form.picture)
+
+    await msg.reply("What do you look like?")
+
+@dp.message(
+        F.photo,
+        Form.picture
+)
+async def process_photo(msg: types.Message, state: FSMContext):
+
+    await state.update_data(picture=msg.photo[0].file_id)
 
     user_data = await state.get_data()
 
     user_id = msg.from_user.id
     user_name = msg.from_user.username
 
-    new_agent = Agent(user_id, user_name, user_data['age'], user_data['gender'])
+    new_agent = Agent(
+            user_id,
+            user_name,
+            user_data['age'],
+            user_data['gender'],
+            user_data['picture'])
+
     agents[new_agent.user_id] = new_agent
 
     markup = types.ReplyKeyboardRemove()
 
-    await bot.send_message(
+    await bot.send_message
             msg.chat.id,
-            f"Agent: {new_agent} successfully created!",
+            text=f"{new_agent.user_name}, you look beautiful!",
             reply_markup=markup)
 
-    await Form.next()
+    await bot.send_photo(
+            msg.chat.id,
+            new_agent.picture,
+            reply_markup=markup)
+
+    await state.set_state(Form.registered)
 
 
-@dp.message_handler(commands='search', state=Form.registered)
+@dp.message(Command('search'), Form.registered)
 async def process_search(msg: types.Message):
     user_id = msg.from_user.id
     agent = agents[user_id]
@@ -93,12 +123,12 @@ async def process_search(msg: types.Message):
     await msg.reply(f"Found these agents:{candidates_str}")
 
 
-def main():
+async def main():
     global agents
     agents = load_from_file("setup.txt")
 
-    executor.start_polling(dp)
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
