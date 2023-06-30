@@ -1,0 +1,2 @@
+LIKE = u'👍'
+DISLIKE = u'👎'

@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Set
 
 # from gender import Gender
 
@@ -9,6 +10,9 @@ class Agent:
     user_name: str
     age: int
     gender: str
+    picture: str
+    like_ids: Set[int] = field(default_factory=lambda: set())
+    dislike_ids: Set[int] = field(default_factory=lambda: set())
 
     def rate(self, other) -> int:
         if other.user_id == self.user_id or other.gender == self.gender:
@@ -17,8 +21,8 @@ class Agent:
         return 6 - abs(self.age - other.age)
 
     def serialize(self) -> str:
-        return f"{self.user_id} {self.user_name} {self.age} {self.gender}"
+        return f"{self.user_id} {self.user_name} {self.age} {self.gender} {self.picture}"
 
     def deserialize(serialized: str):
-        user_id, user_name, age, gender = serialized.split()
-        return Agent(int(user_id), user_name, int(age), gender)
+        user_id, user_name, age, gender, picture = serialized.split()
+        return Agent(int(user_id), user_name, int(age), gender, picture)

@@ -18,7 +18,7 @@ for i in range (NO_AGENTS):
     age = random.randint(MIN_AGE, MAX_AGE)
     gender = "Male" if name in MALE_NAMES else "Female"
 
-    agent = Agent(i, name, age, gender)
+    agent = Agent(i, name, age, gender, 0)
     lines.append(agent.serialize())
 
 with open("setup.txt", "w") as f:
