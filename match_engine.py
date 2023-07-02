@@ -14,9 +14,11 @@ def find_match(agent: Agent, agents):
 def rate_match(subj: Agent, obj: Agent) -> float:
     if (obj.user_id == subj.user_id
         or obj.gender == subj.gender
-        or obj.user_id in subj.dislike_ids
-        or obj.user_id in subj.like_ids
+        or obj.user_id in subj.disliked_ids
+        or obj.user_id in subj.liked_ids
+        or obj.age > subj.max_preferred_age
+        or obj.age < subj.min_preferred_age
         ):
         return -1 # we don't want to date oursubj or someone with the same gender
 
-    return 6 - abs(subj.age - obj.age)
+    return 1

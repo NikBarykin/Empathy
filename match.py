@@ -6,12 +6,13 @@ import logging
 
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types, F
+from aiogram.types import ReplyKeyboardMarkup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Text
 from aiogram.fsm.state import State, StatesGroup
 
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from aiogram.filters.command import Command
 
@@ -24,10 +25,17 @@ from aiogram.filters.callback_data import CallbackData
 
 router = Router()
 
+
 class RatesCallbackFactory(CallbackData, prefix="rate"):
-    like: bool
+    liked: bool
     subj_id: int
     obj_id: int
+
+
+def get_match_command_keyboard() -> ReplyKeyboardMarkup:
+    buttons = [[types.KeyboardButton(text="match")]]
+    return ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True, one_time_keyboard=True)
+
 
 def get_match_keyboard(subj_id: int, obj_id: int) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
@@ -35,7 +43,7 @@ def get_match_keyboard(subj_id: int, obj_id: int) -> types.InlineKeyboardMarkup:
     builder.button(
             text=emoji.LIKE,
             callback_data=RatesCallbackFactory(
-                like=True,
+                liked=True,
                 subj_id=subj_id,
                 obj_id=obj_id,
                 )
@@ -44,7 +52,7 @@ def get_match_keyboard(subj_id: int, obj_id: int) -> types.InlineKeyboardMarkup:
     builder.button(
             text=emoji.DISLIKE,
             callback_data=RatesCallbackFactory(
-                like=False,
+                liked=False,
                 subj_id=subj_id,
                 obj_id=obj_id,
                 )
@@ -56,7 +64,7 @@ def get_match_keyboard(subj_id: int, obj_id: int) -> types.InlineKeyboardMarkup:
 
 
 @router.message(
-        Command("match"),
+        Text("match"),
         AgentState.registered
 )
 async def process_match(
@@ -70,10 +78,14 @@ async def process_match(
     companion = find_match(agent, agents.values())
 
     if companion is None:
-        message.reply("There is no match yet:(")
+        await message.reply(
+                text="На данный момент подходящих партнеров не найдено.",
+                reply_markup=get_match_command_keyboard())
         return
 
-    text = f"{companion.user_name}, {companion.age}"
+    text = (
+            f"{companion.name}, {companion.age}\n"
+            f"{companion.about_yourself}")
 
     await message.answer_photo(
         companion.picture,
@@ -84,30 +96,35 @@ async def process_match(
 
 
 @router.message(
-        Command("match"),
+        Text("match"),
         AgentState.rates
         )
 async def process_match(message: types.Message, agents):
-    await message.reply("Before finding the next person you have to rate previous one")
+    await message.reply("Сначала поставьте оценку предыдущему кандидату")
 
 
-@router.callback_query(RatesCallbackFactory.filter())
+@router.callback_query(
+        RatesCallbackFactory.filter(),
+        AgentState.rates
+        )
 async def process_rate(
         callback: types.CallbackQuery,
         callback_data: RatesCallbackFactory,
         state: FSMContext,
+        bot: Bot,
         agents
         ):
     subj_id = callback_data.subj_id
     obj_id = callback_data.obj_id
 
     subj = agents[subj_id]
+    obj = agents[obj_id]
 
-    if callback_data.like:
-        target_set = subj.like_ids
+    if callback_data.liked:
+        target_set = subj.liked_ids
         target_text = emoji.LIKE
     else:
-        target_set = subj.dislike_ids
+        target_set = subj.disliked_ids
         target_text = emoji.DISLIKE
 
     target_set.add(obj_id)
@@ -124,17 +141,23 @@ async def process_rate(
     await callback.message.edit_reply_markup(
             reply_markup=types.InlineKeyboardMarkup(inline_keyboard=buttons))
 
-    if (callback_data.like
-        and subj_id in agents[obj_id].like_ids
+    if (callback_data.liked
+        and subj_id in obj.liked_ids
         ):
-        await callback.message.reply(text="There is a match!")
+        reply_text = "🔥У вас взаимная симпатия с @{}🔥"
+        await bot.send_message(obj_id, text=reply_text.format(subj.username))
+        await bot.send_message(subj_id, text=reply_text.format(obj.username))
 
     await callback.answer()
     await state.set_state(AgentState.registered)
+
+    await callback.message.answer(
+            text="Оценка учтена",
+            reply_markup=get_match_command_keyboard())
 
 @router.callback_query(Text("already_rated"))
 async def process_already_rates(
         callback: types.CallbackQuery,
         agents
         ):
-    await callback.answer(text="You have already rated this person")
+    await callback.answer(text="Вы уже оценили этого человека")

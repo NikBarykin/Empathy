@@ -3,27 +3,18 @@ import logging
 
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.fsm.context import FSMContext
-from aiogram.filters import Text
 from aiogram.fsm.state import State, StatesGroup
-
-from aiogram.filters.command import Command
-
-from random import randint
+from aiogram.fsm.storage.memory import MemoryStorage
 
 from bot_config import TOKEN
-
-from dataclasses import dataclass
 
 import sys
 
 from setup import load_from_file
 
-from search import search
-
 import process_help
 import form
+import preferences
 import match
 
 
@@ -33,10 +24,17 @@ async def main():
     bot = Bot(token=TOKEN)
     dp = Dispatcher(storage=storage)
 
-    dp.include_routers(process_help.router, form.router, match.router)
+    dp.include_routers(
+            process_help.router,
+            form.router,
+            preferences.router,
+            match.router)
 
+    # TODO: set instead of map
     agents = load_from_file("setup.txt")
 
+    # skip messages
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, agents=agents)
 
 
