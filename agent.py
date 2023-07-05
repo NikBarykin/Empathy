@@ -5,9 +5,10 @@ from typing import Set
 AVAILABLE_GENDERS = ('мужчина', 'женщина')
 AVAILABLE_CITIES = ("москва", "санкт-петербург")
 RELATIONSHIP_GOALS = ("долгосрочные отношения", "краткосрочные отношения", "просто общение")
+INTERESTS = ("спорт", "наука", "искусство")
 
 
-@dataclass
+@dataclass(unsafe_hash=True, frozen=True)
 class Agent:
     user_id: int
     username: str
@@ -15,6 +16,7 @@ class Agent:
     age: int
     gender: str
     city: str
+    relationship_goal: str
     picture: str
     about_yourself: str
 
@@ -31,10 +33,42 @@ class Agent:
     #     return 6 - abs(self.age - other.age)
 
     def serialize(self) -> str:
-        return f"{self.user_id};{self.username};{self.name};{self.age};{self.gender};{self.city};{self.picture};{self.min_preferred_age};{self.max_preferred_age};{self.about_yourself}"
+        return ';'.join(
+                map(
+                    str,
+                    [
+                        self.user_id,
+                        self.username,
+                        self.name,
+                        self.age,
+                        self.gender,
+                        self.city,
+                        self.relationship_goal,
+                        self.picture,
+                        self.about_yourself
+                        self.min_preferred_age,
+                        self.max_preferred_age,
+                        ]
+                    )
+                )
 
     def deserialize(serialized: str):
-        user_id, user_name, name, age, gender, city, picture, min_preferred_age, max_preferred_age, about_yourself = serialized.split(';')
+        (
+
+                user_id,
+                username,
+                name,
+                age,
+                gender,
+                city,
+                relationship_goal,
+                picture,
+                about_yourself
+                min_preferred_age,
+                max_preferred_age,
+                = 
+                serialized.split(';')
+                )
 
         return Agent(
                 int(user_id),
@@ -43,6 +77,7 @@ class Agent:
                 int(age),
                 gender,
                 city,
+                relationship_goal,
                 picture,
                 about_yourself,
                 int(min_preferred_age),
@@ -57,6 +92,7 @@ def create_agent(data) -> Agent:
             data['age'],
             data['gender'],
             data['city'],
+            data['relationship_goal'],
             data['picture'],
             data['about_yourself'],
             data['min_preferred_age'],

@@ -1,4 +1,4 @@
-from user_state import AgentState
+from user_state import UserState
 from aiogram import Router, F
 
 import asyncio
@@ -65,7 +65,7 @@ def get_match_keyboard(subj_id: int, obj_id: int) -> types.InlineKeyboardMarkup:
 
 @router.message(
         Text("match"),
-        AgentState.registered
+        UserState.registered
 )
 async def process_match(
         message: types.Message,
@@ -75,7 +75,7 @@ async def process_match(
     user_id = message.from_user.id
     agent = agents[user_id]
 
-    companion = find_match(agent, agents.values())
+    companion = find_match(agent, agents)
 
     if companion is None:
         await message.reply(
@@ -92,12 +92,12 @@ async def process_match(
         caption=text,
         reply_markup=get_match_keyboard(user_id, companion.user_id))
 
-    await state.set_state(AgentState.rates)
+    await state.set_state(UserState.rates)
 
 
 @router.message(
         Text("match"),
-        AgentState.rates
+        UserState.rates
         )
 async def process_match(message: types.Message, agents):
     await message.reply("Сначала поставьте оценку предыдущему кандидату")
@@ -105,7 +105,7 @@ async def process_match(message: types.Message, agents):
 
 @router.callback_query(
         RatesCallbackFactory.filter(),
-        AgentState.rates
+        UserState.rates
         )
 async def process_rate(
         callback: types.CallbackQuery,
@@ -149,7 +149,7 @@ async def process_rate(
         await bot.send_message(subj_id, text=reply_text.format(obj.username))
 
     await callback.answer()
-    await state.set_state(AgentState.registered)
+    await state.set_state(UserState.registered)
 
     await callback.message.answer(
             text="Оценка учтена",

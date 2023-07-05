@@ -2,7 +2,7 @@ from agent import Agent
 
 
 def load_from_file(filename: str):
-    result = dict()
+    result = set()
     with open(filename, "r", encoding="utf-8") as f:
         for line in f:
             if not line:

@@ -11,7 +11,7 @@ from aiogram.filters import Text
 from aiogram.filters.command import Command
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from user_state import AgentState
+from user_state import UserState
 from agent import Agent, AVAILABLE_GENDERS, AVAILABLE_CITIES, RELATIONSHIP_GOALS
 from match import get_match_command_keyboard
 
@@ -19,25 +19,25 @@ router = Router()
 
 
 @router.message(Command("start"))
-async def cmd_start(msg: types.Message, state: FSMContext):
-    await state.update_data(user_id=msg.from_user.id)
-    await state.update_data(username=msg.from_user.username)
-    await msg.answer("Как Вас зовут?")
-    await state.set_state(AgentState.name)
+async def cmd_start(message: types.Message, state: FSMContext):
+    await state.update_data(user_id=message.from_user.id)
+    await state.update_data(username=message.from_user.username)
+    await message.answer("Как Вас зовут?")
+    await state.set_state(UserState.name)
 
 
 @router.message(
         F.text,
-        AgentState.name)
-async def process_name(msg: types.Message, state: FSMContext):
-    await state.update_data(name=msg.text)
-    await msg.answer("Сколько Вам лет?")
-    await state.set_state(AgentState.age)
+        UserState.name)
+async def process_name(message: types.Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    await message.answer("Сколько Вам лет?")
+    await state.set_state(UserState.age)
 
 
-def get_gender_kb() -> types.ReplyKeyboardMarkup:
+def get_sex_kb() -> types.ReplyKeyboardMarkup:
     kb = [
-            [types.KeyboardButton(text=gender) for gender in AVAILABLE_GENDERS]
+            [types.KeyboardButton(text=sex) for sex in AVAILABLE_GENDERS]
     ]
     return types.ReplyKeyboardMarkup(
             keyboard=kb,
@@ -49,49 +49,49 @@ def get_gender_kb() -> types.ReplyKeyboardMarkup:
 # TODO: improve filter (for example age thresholds)
 @router.message(
         F.text.isnumeric(),
-        AgentState.age)
-async def process_age(msg: types.Message, state: FSMContext):
-    await state.update_data(age=int(msg.text))
-    await msg.answer(
-            "Ваш пол?",
-            reply_markup=get_gender_kb())
-    await state.set_state(AgentState.gender)
+        UserState.age)
+async def process_age(message: types.Message, state: FSMContext):
+    await state.update_data(age=int(message.text))
+    await message.answer(
+            "твой пол?",
+            reply_markup=get_sex_kb())
+    await state.set_state(UserState.sex)
 
 
-@router.message(AgentState.age)
-async def process_incorrect_age(msg: types.Message):
-    await msg.reply("Некорректное значение")
+@router.message(UserState.age)
+async def process_incorrect_age(message: types.Message):
+    await message.reply("Некорректное значение")
 
 
 @router.message(
-        AgentState.gender,
+        UserState.sex,
         F.text.lower().in_(AVAILABLE_GENDERS)
 )
-async def process_gender(msg: types.Message, state: FSMContext):
-    await state.update_data(gender=msg.text)
-    await msg.answer("В каком городе Вы проживаете?")
-    await state.set_state(AgentState.city)
+async def process_sex(message: types.Message, state: FSMContext):
+    await state.update_data(sex=message.text)
+    await message.answer("В каком городе ты проживаете?")
+    await state.set_state(UserState.city)
 
 
 @router.message(
-        AgentState.gender
+        UserState.sex
 )
-async def process_invalid_gender(msg: types.Message):
-    await msg.reply("Некорректное значение")
+async def process_invalid_sex(message: types.Message):
+    await message.reply("Некорректное значение")
 
 
 # TODO: allow mistakes and add more cities
 @router.message(
         F.text.lower().in_(AVAILABLE_CITIES),
-        AgentState.city,
+        UserState.city,
 )
-async def process_city(msg: types.Message, state: FSMContext):
-    await state.update_data(city=msg.text)
-    await msg.answer(
-            "Ваша цель",
+async def process_city(message: types.Message, state: FSMContext):
+    await state.update_data(city=message.text)
+    await message.answer(
+            "Твоя цель",
             reply_markup=get_relationship_goal_kb()
             )
-    await state.set_state(AgentState.relationship_goal)
+    await state.set_state(UserState.relationship_goal)
 
 def get_relationship_goal_kb() -> types.ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
@@ -105,48 +105,49 @@ def get_relationship_goal_kb() -> types.ReplyKeyboardMarkup:
 
 @router.message(
         F.text.lower().in_(RELATIONSHIP_GOALS),
-        AgentState.relationship_goal
+        UserState.relationship_goal
         )
-async def process_relationship_goal(msg: types.Message, state: FSMContext):
-    await msg.answer(
+async def process_relationship_goal(message: types.Message, state: FSMContext):
+    await state.update_data(relationship_goal=message.text)
+    await message.answer(
             "Добавьте свою фотографию",
             reply_markup=types.ReplyKeyboardRemove())
-    await state.set_state(AgentState.picture)
+    await state.set_state(UserState.picture)
 
 
 @router.message(
-        AgentState.city
+        UserState.city
 )
-async def process_invalid_city(msg: types.Message):
-    await msg.reply("Я не знаю такого города")
+async def process_invalid_city(message: types.Message):
+    await message.reply("Я не знаю такого города")
 
 
 # TODO: multiple pictures
 @router.message(
         F.photo,
-        AgentState.picture
+        UserState.picture
 )
-async def process_photo(msg: types.Message, state: FSMContext):
-    await state.update_data(picture=msg.photo[0].file_id)
+async def process_photo(message: types.Message, state: FSMContext):
+    await state.update_data(picture=message.photo[0].file_id)
 
-    await msg.reply("Отлично выглядите!")
-    await msg.answer("Напишите немного о себе в свободной форме (не более 240 символов)")
+    await message.reply("Отлично выглядите!")
+    await message.answer("Напишите немного о себе в свободной форме (не более 240 символов)")
 
-    await state.set_state(AgentState.about_yourself)
+    await state.set_state(UserState.about_yourself)
 
-# TODO: ограничениие на размер текста
 @router.message(
         F.text.len() < 240,
-        AgentState.about_yourself,
+        UserState.about_yourself,
         )
-async def process_about_yourself(msg: types.Message, state: FSMContext):
-    await state.update_data(about_yourself=msg.text)
-    await msg.answer("Укажите минимальный возраст партнера")
-    await state.set_state(AgentState.min_preferred_age)
+async def process_about_yourself(message: types.Message, state: FSMContext):
+    await state.update_data(about_yourself=message.text)
+    await message.answer("Укажите минимальный возраст партнера")
+    await state.set_state(UserState.min_preferred_age)
+
 
 @router.message(
         F.text,
-        AgentState.about_yourself,
+        UserState.about_yourself,
         )
-async def process_about_yourself(msg: types.Message):
-    await msg.reply("Слишном длинное описание")
+async def process_about_yourself(message: types.Message):
+    await message.reply("Слишном длинное описание")

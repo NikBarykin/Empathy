@@ -1,4 +1,4 @@
-from user_state import AgentState
+from user_state import UserState
 from aiogram import Router, F
 
 import asyncio
@@ -33,30 +33,30 @@ router = Router()
 # TODO: invalid value
 @router.message(
         F.text.isnumeric(),
-        AgentState.min_preferred_age
+        UserState.min_preferred_age
         )
 async def process_min_preferred_age(
-        msg: types.Message,
+        message: types.Message,
         state: FSMContext):
-    await state.update_data(min_preferred_age=int(msg.text))
-    await msg.answer("Укажите максимальный возраст партнера")
-    await state.set_state(AgentState.max_preferred_age)
+    await state.update_data(min_preferred_age=int(message.text))
+    await message.answer("Укажите максимальный возраст партнера")
+    await state.set_state(UserState.max_preferred_age)
 
 
 @router.message(
         F.text.isnumeric(),
-        AgentState.max_preferred_age
+        UserState.max_preferred_age
         )
 async def process_min_preferred_age(
-        msg: types.Message,
+        message: types.Message,
         state: FSMContext,
         agents):
-    await state.update_data(max_preferred_age=int(msg.text))
+    await state.update_data(max_preferred_age=int(message.text))
 
     new_agent = create_agent(await state.get_data())
-    agents[new_agent.user_id] = new_agent
+    agents.add(new_agent)
 
-    await msg.answer(
-            "Вы успешно зарегистрированы! Теперь Вам доступен подбор партнера.",
+    await message.answer(
+            "Ты успешно зарегистрированы! Теперь тебе доступен подбор партнера.",
             reply_markup = get_match_command_keyboard())
-    await state.set_state(AgentState.registered)
+    await state.set_state(UserState.registered)
