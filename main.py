@@ -2,7 +2,7 @@ from database_declarative_base import Base
 
 import command_start
 import personal
-import preferrences
+import preference
 import matching
 
 import asyncio
@@ -37,7 +37,7 @@ async def main():
 
     dp.include_router(command_start.router)
     dp.include_router(personal.router)
-    dp.include_router(preferrences.router)
+    dp.include_router(preference.router)
     dp.include_router(matching.router)
 
     # TODO: command-line-argument
@@ -53,7 +53,7 @@ async def main():
 
     # skip messages
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, session=async_session)
+    await dp.start_polling(bot, async_session=async_session)
 
     # clean-up
     await engine.dispose()
