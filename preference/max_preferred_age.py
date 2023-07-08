@@ -1,8 +1,12 @@
 from user import User
 from user_state import UserState
-from matching.keyboards import get_reply_kb
 
-from aiogram import types
+import registration_end
+
+from aiogram import (
+        types,
+        Bot,
+        )
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
@@ -14,6 +18,7 @@ from sqlalchemy.ext.asyncio import (
 
 async def process_max_preferred_age(
         message: types.Message,
+        bot: Bot,
         state: FSMContext,
         async_session: async_sessionmaker[AsyncSession],
         ):
@@ -26,8 +31,9 @@ async def process_max_preferred_age(
         async with session.begin():
             session.add(user)
 
-    await message.answer(
-            "Ты успешно зарегистрирован! Теперь тебе доступен подбор партнера.",
-            reply_markup = get_reply_kb())
-    await state.set_state(UserState.registered)
-
+    await registration_end.process_end(
+            bot,
+            message.from_user.id,
+            state,
+            async_session,
+            )
