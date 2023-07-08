@@ -7,8 +7,10 @@ from constants import (
 
 from user import User
 from rating import Rating
-from matching.keyboards import get_reply_kb
+
 from matching.rating_callback_factory import RatingCallbackFactory
+from matching.match import get_next_match
+
 from engine import check_liked
 
 from aiogram import types, Bot
@@ -51,7 +53,6 @@ async def insert_rating(
 async def process_callback_rated(
         callback: types.CallbackQuery,
         callback_data: RatingCallbackFactory,
-        state: FSMContext,
         bot: Bot,
         async_session: async_sessionmaker[AsyncSession],
         ):
@@ -94,13 +95,13 @@ async def process_callback_rated(
                     text=reply_text.format(obj.telegram_handle),
                     )
 
-        await callback.answer()
+    await callback.answer()
 
-        await callback.message.answer(
-                text="Оценка учтена",
-                reply_markup=get_reply_kb())
-
-        await state.set_state(UserState.registered)
+    await get_next_match(
+            bot=bot,
+            user_telegram_id=callback_data.subj_telegram_id,
+            async_session=async_session,
+            )
 
 async def process_callback_already_rated(
         callback: types.CallbackQuery,

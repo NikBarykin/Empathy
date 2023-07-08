@@ -37,8 +37,3 @@ def get_inline_kb(
     builder.adjust(2)
 
     return builder.as_markup()
-
-
-def get_reply_kb() -> ReplyKeyboardMarkup:
-    buttons = [[types.KeyboardButton(text="match")]]
-    return ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True, one_time_keyboard=True)
