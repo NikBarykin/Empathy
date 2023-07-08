@@ -8,6 +8,8 @@ import matching
 import asyncio
 import logging
 
+import sys
+
 # sqlalchemy
 # asyncio
 from sqlalchemy.ext.asyncio import (
@@ -20,12 +22,16 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from config import TOKEN
+from config import (
+        TOKEN,
+        DATABASE_PATH,
+        )
 
 
 async def main():
     # logging to sdout
     logging.basicConfig(
+            # TODO: change to WARNING
             level = logging.INFO,
             format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
             )
@@ -40,9 +46,8 @@ async def main():
     dp.include_router(preference.router)
     dp.include_router(matching.router)
 
-    # TODO: command-line-argument
     engine = create_async_engine(
-            "sqlite+aiosqlite:///database.db",
+            f"sqlite+aiosqlite://{DATABASE_PATH}",
             echo=True,
             )
 
