@@ -1,7 +1,7 @@
 # for following imports to work
 import sys
 # TODO: fix
-sys.path.append("../empathy")
+sys.path.append("../Empathy")
 
 from database_declarative_base import Base
 from user import User
