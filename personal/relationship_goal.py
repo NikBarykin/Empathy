@@ -1,6 +1,8 @@
 from constants import RELATIONSHIP_GOALS
 from user_state import UserState
 
+from personal.interests.prepare import prepare_interests
+
 from aiogram import types
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
@@ -25,11 +27,7 @@ async def process_relationship_goal(
         ):
     await state.update_data(relationship_goal=message.text)
 
-    # photo
-    await message.answer(
-            "Добавьте свою фотографию",
-            reply_markup=types.ReplyKeyboardRemove())
-    await state.set_state(UserState.photo)
+    await prepare_interests(message, state)
 
 
 async def process_invalid_relationship_goal(

@@ -20,6 +20,15 @@ from sqlalchemy.ext.asyncio import (
 #            session.add(personal)
 
 
+async def prepare(
+        message: Message,
+        state: FSMContext,
+        ):
+    # TODO: why 240
+    await message.answer("Напиши немного о себе в свободной форме (не более 240 символов)")
+    await state.set_state(UserState.self_description)
+
+
 async def process_self_description(
         message: Message,
         state: FSMContext,

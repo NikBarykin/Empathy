@@ -1,5 +1,3 @@
-# TODO: move everything to __init__.py
-# import sys; sys.path.append("..")
 from user_state import UserState
 
 from personal.name import process_name
@@ -10,7 +8,19 @@ from personal.relationship_goal import (
         process_relationship_goal,
         process_invalid_relationship_goal,
         )
-from personal.photo import process_photo
+from personal.interests.check_interest import (
+        process_callback_check_interest,
+        )
+
+from personal.interests.submit import (
+        process_callback_submit,
+        )
+
+from personal.photo import (
+        process_explicitly_choosen_photo,
+        process_profile_photo,
+        ADD_PROFILE_PHOTO_TEXT,
+        )
 from personal.self_description import (
         process_self_description,
         process_invalid_self_decription,
@@ -24,7 +34,12 @@ from constants import (
         INTERESTS,
         )
 
-from aiogram import Router, F
+from aiogram import (
+        Router,
+        F,
+        )
+
+from aiogram.filters import Text
 
 
 router = Router()
@@ -76,14 +91,32 @@ router.message.register(
         UserState.relationship_goal,
         )
 
+router.callback_query.register(
+        process_callback_check_interest,
+        Text(startswith="interest_"),
+        UserState.interests,
+        )
+
+router.callback_query.register(
+        process_callback_submit,
+        Text("submit_interests"),
+        UserState.interests,
+        )
+
 router.message.register(
         process_invalid_relationship_goal,
         UserState.relationship_goal,
         )
 
+router.message.register(
+        process_explicitly_choosen_photo,
+        F.photo,
+        UserState.photo,
+        )
 
 router.message.register(
-        process_photo,
+        process_profile_photo,
+        Text(ADD_PROFILE_PHOTO_TEXT),
         UserState.photo,
         )
 

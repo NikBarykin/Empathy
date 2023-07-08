@@ -5,6 +5,11 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 
+async def prepare(message: Message, state: FSMContext):
+    await message.answer("Твой город")
+    await state.set_state(UserState.city)
+
+
 # TODO: allow mistakes and add more cities
 async def process_city(message: Message, state: FSMContext):
     await state.update_data(city=message.text.lower())
