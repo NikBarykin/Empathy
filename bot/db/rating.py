@@ -1,5 +1,5 @@
-from database_declarative_base import Base
-from user import User
+from db.base import Base
+from db.user import User
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase

@@ -1,13 +1,13 @@
-from user import User
+from db.user import User
 from user_state import UserState
 
 import registration_end
 
 from aiogram import (
-        types,
-        Bot,
-        )
-from aiogram import Router
+    types,
+    Bot,
+    Router,
+)
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 
@@ -32,11 +32,11 @@ async def user_already_in_database(
 
 @router.message(Command('start'))
 async def process_command_start(
-        message: types.Message,
-        bot: Bot,
-        state: FSMContext,
-        async_session: async_sessionmaker[AsyncSession],
-        ):
+    message: types.Message,
+    bot: Bot,
+    state: FSMContext,
+    async_session: async_sessionmaker[AsyncSession],
+):
     telegram_id = message.from_user.id
 
     # TODO: better answers

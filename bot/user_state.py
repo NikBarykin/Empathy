@@ -8,6 +8,7 @@ class UserState(StatesGroup):
     sex = State()
     city = State()
     relationship_goal = State()
+    interests = State()
     photo = State()
     self_description = State()
     # preferences
@@ -15,4 +16,4 @@ class UserState(StatesGroup):
     max_preferred_age = State()
     # match
     registered = State()
-    rates = State()
+    # rates = State()

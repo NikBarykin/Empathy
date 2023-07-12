@@ -7,20 +7,20 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 from sqlalchemy.ext.asyncio import (
-        async_sessionmaker,
-        AsyncSession,
-    )
+    async_sessionmaker,
+    AsyncSession,
+)
 
 
 async def process_end(
-        bot: Bot,
-        user_telegram_id: int,
-        state: FSMContext,
-        async_session: async_sessionmaker[AsyncSession],
-        ) -> None:
+    bot: Bot,
+    user_telegram_id: int,
+    state: FSMContext,
+    async_session: async_sessionmaker[AsyncSession],
+) -> None:
     await get_next_match(
-            bot,
-            user_telegram_id,
-            async_session,
-            )
+        bot,
+        user_telegram_id,
+        async_session,
+    )
     await state.set_state(UserState.registered)

@@ -1,17 +1,17 @@
-from engine import get_user_by_telegram_id
+from db.engine import get_user_by_telegram_id
 from user_state import UserState
 from constants import (
         LIKE_EMOJI,
         DISLIKE_EMOJI,
         )
 
-from user import User
-from rating import Rating
+from db.user import User
+from db.rating import Rating
 
 from matching.rating_callback_factory import RatingCallbackFactory
 from matching.match import get_next_match
 
-from engine import check_liked
+from db.engine import check_liked
 
 from aiogram import types, Bot
 from aiogram.fsm.context import FSMContext

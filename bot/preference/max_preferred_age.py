@@ -1,4 +1,4 @@
-from user import User
+from db.user import User
 from user_state import UserState
 
 import registration_end

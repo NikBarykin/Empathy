@@ -1,10 +1,10 @@
-from user import User
+from db.user import User
 from user_state import UserState
 from matching.keyboards import (
         get_inline_kb,
         )
 
-from engine import find_match
+from db.engine import find_match
 
 from aiogram import (
         types,
