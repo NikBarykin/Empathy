@@ -1,22 +1,12 @@
-from user_state import UserState
-
-from personal import photo
-
-from constants import (
-        INTERESTS,
-        NO_INTERESTS,
-        CHECK_MARK_EMOJI,
-        )
-
 from typing import Set
 
 from aiogram import types
-from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from aiogram.utils.keyboard import (
-        InlineKeyboardBuilder,
-        InlineKeyboardButton,
-        )
+from aiogram.types import Message
+from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
+from constants import CHECK_MARK_EMOJI, INTERESTS, NO_INTERESTS
+from personal import photo
+from user_state import UserState
 
 
 async def get_interests(state: FSMContext) -> Set[str]:
@@ -54,7 +44,7 @@ async def get_inline_kb(state: FSMContext) -> types.InlineKeyboardMarkup:
 
 
 async def prepare_interests(
-        message: Message, 
+        message: Message,
         state: FSMContext,
         ):
     await state.update_data(interests=set())
