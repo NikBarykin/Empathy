@@ -1,22 +1,12 @@
-from db.user import User
-from user_state import UserState
-
-import registration_end
-
-from aiogram import (
-    types,
-    Bot,
-    Router,
-)
+from aiogram import Bot, Router, types
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
-
-from sqlalchemy.ext.asyncio import (
-        async_sessionmaker,
-        AsyncSession,
-        )
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+import registration_end
+from db.user import User
+from user_state import UserState
 
 router = Router()
 
