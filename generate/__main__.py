@@ -57,6 +57,7 @@ async def main() -> None:
             self_description=random.choice(descriptions),
             min_preferred_age=0,
             max_preferred_age=100,
+            preferred_partner_interests=interests,
         )
 
         async with async_sessionmaker() as session:

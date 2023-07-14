@@ -1,24 +1,14 @@
-from user_state import UserState
-
-from personal import photo
-from personal.interests.prepare import (
-        get_inline_kb,
-        get_interests,
-        get_interests_text,
-        )
-
-from constants import (
-        INTERESTS,
-        NO_INTERESTS,
-        CHECK_MARK_EMOJI,
-        )
-
 from typing import Set
 
 from aiogram import types
-from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from constants import CHECK_MARK_EMOJI, INTERESTS, NO_INTERESTS
+from personal import photo
+from user_state import UserState
+
+from .prepare import get_inline_kb, get_interests, get_interests_text
 
 
 async def process_callback_check_interest(
@@ -34,8 +24,9 @@ async def process_callback_check_interest(
         if len(interests) == NO_INTERESTS:
             # Too much interests
 
-            await callback.answer(text="Превышено допустимое количество интересов")
-            return 
+            await callback.answer(
+                text="Превышено допустимое количество интересов")
+            return
 
         interests.add(target_interest)
 

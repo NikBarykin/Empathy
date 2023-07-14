@@ -1,14 +1,9 @@
-from user_state import UserState
-
+from aiogram.fsm.context import FSMContext
 # 3rd party
 from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
-
-from sqlalchemy.ext.asyncio import (
-        async_sessionmaker,
-        AsyncSession,
-        )
-
+from db.config import SELF_DESCRIPTION_MAX_LEN
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from user_state import UserState
 
 ## TODO: move to other place
 #async def insert_personal(
@@ -25,7 +20,8 @@ async def prepare(
         state: FSMContext,
         ):
     # TODO: why 240
-    await message.answer("Напиши немного о себе в свободной форме (не более 240 символов)")
+    await message.answer(
+        f"Напиши немного о себе в свободной форме (не более {SELF_DESCRIPTION_MAX_LEN} символов)")
     await state.set_state(UserState.self_description)
 
 

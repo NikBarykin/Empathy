@@ -1,11 +1,9 @@
-from constants import RELATIONSHIP_GOALS
-from user_state import UserState
-
-from personal.interests.prepare import prepare_interests
-
 from aiogram import types
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from constants import RELATIONSHIP_GOALS
+from interests.prepare import prepare_interests
+from user_state import UserState
 
 
 def get_kb() -> types.ReplyKeyboardMarkup:
@@ -20,6 +18,7 @@ def get_kb() -> types.ReplyKeyboardMarkup:
             resize_keyboard=True,
             one_time_keyboard=True,
             )
+
 
 async def process_relationship_goal(
         message: types.Message,

@@ -1,9 +1,9 @@
-from constants import SEXES
-from user_state import UserState
-from personal import city
-
 from aiogram import types
 from aiogram.fsm.context import FSMContext
+from constants import SEXES
+from user_state import UserState
+
+from personal import city
 
 
 def get_kb() -> types.ReplyKeyboardMarkup:
@@ -21,7 +21,7 @@ async def process_sex(
         message: types.Message,
         state: FSMContext
         ):
-    await state.update_data(sex=message.text)
+    await state.update_data(sex=message.text.lower())
     await city.prepare(message, state)
 
 

@@ -14,6 +14,7 @@ class UserState(StatesGroup):
     # preferences
     min_preferred_age = State()
     max_preferred_age = State()
+    preferred_partner_interests = State()
     # match
     registered = State()
     # rates = State()

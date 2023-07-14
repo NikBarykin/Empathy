@@ -1,46 +1,21 @@
+from aiogram import F, Router
+from aiogram.filters import Text
+from constants import CITIES, INTERESTS, RELATIONSHIP_GOALS, SEXES
+from interests.check_interest import process_callback_check_interest
+from interests.submit import process_callback_submit
 from user_state import UserState
 
-from personal.name import process_name
 from personal.age import process_age, process_invalid_age
-from personal.sex import process_sex, process_invalid_sex
 from personal.city import process_city, process_invalid_city
-from personal.relationship_goal import (
-        process_relationship_goal,
-        process_invalid_relationship_goal,
-        )
-from personal.interests.check_interest import (
-        process_callback_check_interest,
-        )
-
-from personal.interests.submit import (
-        process_callback_submit,
-        )
-
-from personal.photo import (
-        process_explicitly_choosen_photo,
-        process_profile_photo,
-        ADD_PROFILE_PHOTO_TEXT,
-        )
-from personal.self_description import (
-        process_self_description,
-        process_invalid_self_decription,
-        )
-
-
-from constants import (
-        SEXES,
-        CITIES,
-        RELATIONSHIP_GOALS,
-        INTERESTS,
-        )
-
-from aiogram import (
-        Router,
-        F,
-        )
-
-from aiogram.filters import Text
-
+from personal.name import process_name
+from personal.photo import (ADD_PROFILE_PHOTO_TEXT,
+                            process_explicitly_choosen_photo,
+                            process_profile_photo)
+from personal.relationship_goal import (process_invalid_relationship_goal,
+                                        process_relationship_goal)
+from personal.self_description import (process_invalid_self_decription,
+                                       process_self_description)
+from personal.sex import process_invalid_sex, process_sex
 
 router = Router()
 
@@ -91,6 +66,11 @@ router.message.register(
         UserState.relationship_goal,
         )
 
+router.message.register(
+        process_invalid_relationship_goal,
+        UserState.relationship_goal,
+        )
+
 router.callback_query.register(
         process_callback_check_interest,
         Text(startswith="interest_"),
@@ -103,10 +83,6 @@ router.callback_query.register(
         UserState.interests,
         )
 
-router.message.register(
-        process_invalid_relationship_goal,
-        UserState.relationship_goal,
-        )
 
 router.message.register(
         process_explicitly_choosen_photo,

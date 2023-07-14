@@ -1,15 +1,9 @@
+from aiogram import types
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, ReplyKeyboardMarkup
 from user_state import UserState
 
 from personal import self_description
-
-from aiogram import types
-from aiogram.types import (
-        Message,
-        ReplyKeyboardMarkup,
-        )
-
-from aiogram.fsm.context import FSMContext
-
 
 ADD_PROFILE_PHOTO_TEXT = "Добавить фотографию из профиля"
 
@@ -27,7 +21,7 @@ async def prepare(
         state: FSMContext,
         ) -> None:
     await message.answer(
-            "Добавьте фотографию",
+            "Добавь фотографию",
             reply_markup=get_kb())
     await state.set_state(UserState.photo)
 
