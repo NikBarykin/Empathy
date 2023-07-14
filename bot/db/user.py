@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import logging
 from typing import List, Optional, Set
 
-from sqlalchemy import String
+from sqlalchemy import String, select
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
@@ -37,6 +38,10 @@ class User(Base, CleanModel):
     min_preferred_age: Mapped[int]
     max_preferred_age: Mapped[int]
     preferred_partner_interests: Mapped[Set[str]] = mapped_column(ARRAY(String(32)))
+
+    # waiting for new users to register
+    in_waiting_pool: Mapped[bool] = mapped_column(default=False)
+
 
     @staticmethod
     def from_fsm_data(fsm_state_data) -> User:
@@ -80,7 +85,6 @@ class User(Base, CleanModel):
     # def get_score_as_partner_of(self, subject: User) -> float
     #     return (
 
-
     async def insert_to(
         self,
         async_session: async_sessionmaker[AsyncSession],
@@ -88,3 +92,24 @@ class User(Base, CleanModel):
         async with async_session() as session:
             async with session.begin():
                 session.add(self)
+
+    @staticmethod
+    async def get_by_telegram_id(
+        telegram_id: int,
+        session: AsyncSession,
+    ) -> User:
+        stmt = select(User).where(User.telegram_id == telegram_id)
+        async with session.begin():
+            result = await session.execute(stmt.limit(1))
+        return result.scalars().one()
+
+    @staticmethod
+    async def put_in_waiting_pool(
+        telegram_id: int,
+        async_session: async_sessionmaker[AsyncSession],
+    ) -> None:
+        async with async_session() as session:
+            user: User = await User.get_by_telegram_id(telegram_id, session)
+            logging.debug(f"{user.name} was put in a waiting pool")
+            async with session.begin():
+                user.in_waiting_pool = True

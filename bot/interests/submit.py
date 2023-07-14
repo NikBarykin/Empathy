@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from constants import CHECK_MARK_EMOJI, INTERESTS, NO_INTERESTS
+from db.user import User
 from personal import photo
 from registration_end import process_end
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -45,6 +46,11 @@ async def prepare_further(
     async_session: async_sessionmaker[AsyncSession],
 ) -> None:
     if await partner_interests(state):
+        # create new user
+        data = await state.get_data()
+        user: User = User.from_fsm_data(data)
+        await user.insert_to(async_session)
+
         await process_end(
             bot,
             (await state.get_data())['telegram_id'],
