@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.filters import Text
 from interests.check_interest import process_callback_check_interest
+from interests.prepare import process_callback_go_page
 from interests.submit import (process_callback_submit,
                               process_callback_submit_same)
 from user_state import UserState
@@ -25,6 +26,12 @@ router.message.register(
 router.callback_query.register(
     process_callback_check_interest,
     Text(startswith="interest_"),
+    UserState.preferred_partner_interests,
+)
+
+router.callback_query.register(
+    process_callback_go_page,
+    Text(startswith="gopage"),
     UserState.preferred_partner_interests,
 )
 

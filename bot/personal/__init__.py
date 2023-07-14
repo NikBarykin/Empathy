@@ -2,6 +2,7 @@ from aiogram import F, Router
 from aiogram.filters import Text
 from constants import CITIES, INTERESTS, RELATIONSHIP_GOALS, SEXES
 from interests.check_interest import process_callback_check_interest
+from interests.prepare import process_callback_go_page
 from interests.submit import process_callback_submit
 from user_state import UserState
 
@@ -72,17 +73,22 @@ router.message.register(
         )
 
 router.callback_query.register(
-        process_callback_check_interest,
-        Text(startswith="interest_"),
-        UserState.interests,
-        )
+    process_callback_check_interest,
+    Text(startswith="interest_"),
+    UserState.interests,
+)
 
 router.callback_query.register(
-        process_callback_submit,
-        Text("submit_interests"),
-        UserState.interests,
-        )
+    process_callback_go_page,
+    Text(startswith="gopage_"),
+    UserState.interests,
+)
 
+router.callback_query.register(
+    process_callback_submit,
+    Text("submit_interests"),
+    UserState.interests,
+)
 
 router.message.register(
         process_explicitly_choosen_photo,

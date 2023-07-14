@@ -3,7 +3,8 @@ import logging
 import sys
 
 from aiogram import Bot, Dispatcher, F, types
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters import Text
+from aiogram.fsm.state import State, StatesGroup, any_state
 from aiogram.fsm.storage.memory import MemoryStorage
 from sqlalchemy.engine import URL
 # sqlalchemy
@@ -20,11 +21,22 @@ from db.engine import (construct_async_engine, get_async_sessionmaker,
                        proceed_schemas)
 
 
+async def dummy(callback: types.CallbackQuery) -> None:
+    await callback.answer()
+
+
 def include_all_routers(dp: Dispatcher) -> None:
     dp.include_router(command_start.router)
     dp.include_router(personal.router)
     dp.include_router(preference.router)
     dp.include_router(matching.router)
+
+    # dummy endpoint
+    dp.callback_query.register(
+        dummy,
+        Text("pass"),
+        any_state,
+    )
 
 
 def configure_logging() -> None:
