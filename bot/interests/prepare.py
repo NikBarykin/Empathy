@@ -11,10 +11,12 @@ from personal import photo
 from user_state import UserState
 
 
+async def get_interests_key(state: FSMContext) -> str:
+    return ("interests" if (await state.get_state()) == UserState.interests
+            else "preferred_partner_interests")
+
 async def get_interests(state: FSMContext) -> Set[str]:
-    key: str = ("interests" if (await state.get_state()) == UserState.interests
-                else "preferred_partner_interests")
-    return (await state.get_data())[key]
+    return (await state.get_data())[await get_interests_key(state)]
 
 
 async def partner_interests(state: FSMContext) -> bool:

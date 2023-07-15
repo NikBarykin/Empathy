@@ -8,7 +8,7 @@ from constants import CHECK_MARK_EMOJI, INTERESTS, NO_INTERESTS
 from personal import photo
 from user_state import UserState
 
-from .prepare import get_inline_kb, get_interests, get_interests_text
+from .prepare import get_inline_kb, get_interests, get_interests_text, get_interests_key
 
 
 async def process_callback_check_interest(
@@ -30,7 +30,9 @@ async def process_callback_check_interest(
 
         interests.add(target_interest)
 
-    await state.update_data(interests=interests)
+    await state.update_data(
+        **{(await get_interests_key(state)): (await get_interests(state))}
+    )
 
     await callback.message.edit_text(
             text=await get_interests_text(state),
