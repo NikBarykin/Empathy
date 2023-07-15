@@ -3,7 +3,8 @@ import math
 # TODO: normal and lowercase versions
 SEXES = ("мужчина", "женщина")
 CITIES = ("москва", "санкт-петербург")
-RELATIONSHIP_GOALS = ("долгосрочные отношения", "краткосрочные отношения", "просто общение", "не определился")
+NEUTRAL_REL_GOAL = "не определился"
+RELATIONSHIP_GOALS = ("долгосрочные отношения", "краткосрочные отношения", "просто общение", NEUTRAL_REL_GOAL)
 
 NO_INTERESTS = 5
 INTERESTS = (
@@ -18,8 +19,7 @@ INTERESTS = (
     "поэзия",
     "классическая литература",
     "русская литература",
-    "зарубежная литература",
-    "современная литература",
+    "зарубежная литература", "современная литература",
     "философия",
     "кинематограф",
     "вечеринки",
@@ -129,7 +129,7 @@ INTERESTS = (
     "TikTok",
     )
 TOTAL_NO_INTERESTS: int = len(INTERESTS)
-NO_INTERESTS_PER_PAGE: int = 10
+NO_INTERESTS_PER_PAGE: int = 30
 NO_INTEREST_PAGES: int = math.ceil(TOTAL_NO_INTERESTS / NO_INTERESTS_PER_PAGE)
 INTEREST_PAGES = [
     INTERESTS[i * NO_INTERESTS_PER_PAGE:min(TOTAL_NO_INTERESTS, (i + 1) * NO_INTERESTS_PER_PAGE)]

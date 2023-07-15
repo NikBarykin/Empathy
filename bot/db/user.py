@@ -3,14 +3,16 @@ from __future__ import annotations
 import logging
 from typing import List, Optional, Set
 
-from sqlalchemy import String, select
+from constants import NEUTRAL_REL_GOAL, NO_INTERESTS
+from sqlalchemy import SQLColumnExpression, String, case, func, select
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+from db.config import SELF_DESCRIPTION_MAX_LEN
+
 from .base import Base, CleanModel
-from .config import SELF_DESCRIPTION_MAX_LEN
 
 
 class User(Base, CleanModel):
@@ -64,22 +66,93 @@ class User(Base, CleanModel):
 
         return User(**{arg_name: fsm_state_data[arg_name] for arg_name in argument_names})
 
-    # TODO:
-    # @hybrid_method
-    # def get_city_score_as_partner_of(self, subject: User) -> float:
-    #     return
+    @hybrid_method
+    def __get_relationship_goal_score_as_partner_of(self, subject: User) -> float:
+        if subject.relationship_goal == NEUTRAL_REL_GOAL:
+            return 0
 
-    # @hybrid_method
-    # def get_number_of_interests_matching_with_preference_of(
-    #     self, subject: User) -> int:
-    #     return
+        if self.relationship_goal == subject.relationship_goal:
+            # for goal overlap we get plus 25
+            return +25
+        else:
+            # and if goals doesn't overlap we get minus 25
+            return -25
 
+    @__get_relationship_goal_score_as_partner_of.expression
+    @classmethod
+    def __get_relationship_goal_score_as_partner_of(
+        cls, subject: User) -> SQLColumnExpression[float]:
+        return case(
+            (subject.relationship_goal == NEUTRAL_REL_GOAL, 0),
+            else_=case(
+                (cls.relationship_goal == subject.relationship_goal, +25),
+                else_=-25
+            )
+        )
 
+    @hybrid_method
+    def __get_number_of_interests_matching_with_preferences_of(
+        self, subject: User) -> int:
+        return len(self.interests.intersection(subject.preferred_partner_interests))
 
-    # @hybrid_method
-    # def get_interests_score_as_partner_of(self, subject: User) -> float:
-    #     return 50 ** (
-    #         self.get_number_of_interests_matching_with_preference_of(subject) / NO_INTERESTS)
+    # TODO: mark 'inline'
+    @__get_number_of_interests_matching_with_preferences_of.expression
+    @classmethod
+    def __get_number_of_interests_matching_with_preferences_of(
+        cls, subject: User) -> SQLColumnExpression[int]:
+        interests_view = func.unnest(cls.interests).alias("interests_view")
+        return (
+            select(func.count())
+            .select_from(interests_view)
+            .where(
+                interests_view.column.in_(subject.preferred_partner_interests)
+                # subject.preferred_partner_interests.contains(interests_view)
+            )
+            .label("same_interests_count")
+        )
+
+    @hybrid_method
+    def __get_number_of_interests_matching_with_preferences_of_scaled(
+        self, subject: User) -> float:
+        return self.__get_number_of_interests_matching_with_preferences_of(subject) / NO_INTERESTS
+
+    @hybrid_method
+    def __get_interests_score_as_partner_of(self, subject: User) -> float:
+        return 50 ** self.__get_number_of_interests_matching_with_preferences_of_scaled(subject)
+
+    @__get_interests_score_as_partner_of.expression
+    @classmethod
+    def __get_interests_score_as_partner_of(cls, subject: User) -> SQLColumnExpression[float]:
+        return func.pow(50, cls.__get_number_of_interests_matching_with_preferences_of_scaled(subject))
+
+    @hybrid_method
+    def get_partner_score(self, subject: User) -> float:
+        return (
+            self.__get_interests_score_as_partner_of(subject)
+            +
+            self.__get_relationship_goal_score_as_partner_of(subject)
+        )
+
+    @hybrid_method
+    def __is_eligible_age_for(self, subject: User) -> bool:
+        return (
+            (self.age >= subject.min_preferred_age)
+            &
+            (self.age <= subject.max_preferred_age)
+        )
+
+    @hybrid_method
+    def __is_eligible_sex_for(self, subject: User) -> bool:
+        return self.sex != subject.sex
+
+    @hybrid_method
+    def is_eligible_candidate_for(self, subject: User) -> bool:
+        return (
+            (self.__is_eligible_age_for(subject))
+            &
+            (self.__is_eligible_sex_for(subject))
+        )
+
 
     # @hybrid_method
     # def get_score_as_partner_of(self, subject: User) -> float
