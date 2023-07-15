@@ -1,22 +1,22 @@
-import sys; sys.path.append("../Empathy")
+from gen_config import (FEMALE_NAMES, FEMALE_PHOTOS, FEMALE_SELF_DESCRIPTIONS,
+                         MALE_NAMES, MALE_PHOTOS, MALE_SELF_DESCRIPTIONS,
+                         MAX_AGE, MIN_AGE, NO_USERS)
+
+import sys; sys.path.append("../Empathy/bot")
 
 import asyncio
 import random
 
-from bot.config import DATABASE_URL
-from bot.constants import (CITIES, INTERESTS, NO_INTERESTS, RELATIONSHIP_GOALS,
-                           SEXES)
-from bot.db.base import Base
-from bot.db.engine import (construct_async_engine, get_async_sessionmaker,
-                           proceed_schemas)
-from bot.db.user import User
+from config import DATABASE_URL
+from constants import (CITIES, INTERESTS, NO_INTERESTS, RELATIONSHIP_GOALS,
+                       SEXES)
+from db.base import Base
+from db.engine import (construct_async_engine, get_async_sessionmaker,
+                       proceed_schemas)
+from db.user import User
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from generate.config import (FEMALE_NAMES, FEMALE_PHOTOS,
-                             FEMALE_SELF_DESCRIPTIONS, MALE_NAMES, MALE_PHOTOS,
-                             MALE_SELF_DESCRIPTIONS, MAX_AGE, MIN_AGE,
-                             NO_USERS)
 
 TELEGRAM_HANDLE = "imaginary_handle"
 

@@ -22,9 +22,9 @@ async def partner_interests(state: FSMContext) -> bool:
 
 
 async def get_interests_text(state: FSMContext) -> str:
-    return (f"Твои интересы ({NO_INTERESTS} шт.)"
+    return (f"Отметь свои интересы и нажми \"подтвердить\" ({NO_INTERESTS} шт.)"
             if not await partner_interests(state)
-            else f"Интересы партнера({NO_INTERESTS} шт.)")
+            else f"Интересы партнера ({NO_INTERESTS} шт.)")
 
 
 async def get_inline_kb(state: FSMContext) -> types.InlineKeyboardMarkup:
@@ -43,22 +43,6 @@ async def get_inline_kb(state: FSMContext) -> types.InlineKeyboardMarkup:
                 )
 
     builder.adjust(2)
-
-    # "submit" button
-    builder.row(
-            InlineKeyboardButton(
-                text="📍подтвердить📍",
-                callback_data="submit_interests",
-            )
-        )
-
-    if await partner_interests(state):
-        builder.row(
-            InlineKeyboardButton(
-                text="подтвердить такие же интересы, как у меня",
-                callback_data="submit_interests_same",
-            )
-        )
 
     if interest_page_i == 0:
         left_arrow_button = InlineKeyboardButton(
@@ -92,6 +76,22 @@ async def get_inline_kb(state: FSMContext) -> types.InlineKeyboardMarkup:
         page_index_button,
         right_arrow_button,
     )
+
+    # "submit" button
+    builder.row(
+            InlineKeyboardButton(
+                text="📍подтвердить📍",
+                callback_data="submit_interests",
+            )
+        )
+
+    if await partner_interests(state):
+        builder.row(
+            InlineKeyboardButton(
+                text="подтвердить такие же интересы, как у меня",
+                callback_data="submit_interests_same",
+            )
+        )
 
     return builder.as_markup()
 
