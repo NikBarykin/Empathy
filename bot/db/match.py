@@ -41,13 +41,11 @@ async def get_match_by_user(
         session: AsyncSession,
         ) -> Optional[User]:
     stmt = (
-            select(User)
-            .where(User.id != subject.id)
-            .where(User.sex != subject.sex)
-            .where(~User.backward_ratings.any(Rating.subj_id == subject.id))
-            .where(User.age >= subject.min_preferred_age)
-            .where(User.age <= subject.max_preferred_age)
-            )
+        select(User)
+        .where(User.is_eligible_candidate_for(subject))
+        .where(User.get_partner_score(subject) >= 0)
+        .order_by(User.get_partner_score(subject))
+    )
     result = await session.execute(stmt.limit(1))
     return result.scalars().one_or_none()
 

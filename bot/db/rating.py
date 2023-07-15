@@ -1,5 +1,5 @@
 from db.base import Base
-from db.user import User
+from db.user_data import UserData
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import DeclarativeBase
@@ -23,12 +23,12 @@ class Rating(Base):
             primary_key=True,
             )
 
-    subject: Mapped["User"] = relationship(
-            primaryjoin=subj_id == User.id, backref="forward_ratings")
-    object: Mapped["User"] = relationship(
-            primaryjoin=obj_id == User.id, backref="backward_ratings")
+    subject: Mapped["UserData"] = relationship(
+            primaryjoin=subj_id == UserData.id, backref="forward_ratings")
+    object: Mapped["UserData"] = relationship(
+            primaryjoin=obj_id == UserData.id, backref="backward_ratings")
 
-    def __init__(self, liked: bool, subj: User, obj: User):
+    def __init__(self, liked: bool, subj: UserData, obj: UserData):
         self.liked = liked
         self.subject = subj
         self.object = obj

@@ -1,48 +1,19 @@
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Set
 
 from constants import NEUTRAL_REL_GOAL, NO_INTERESTS
-from sqlalchemy import SQLColumnExpression, String, case, func, select
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import SQLColumnExpression, case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.ext.hybrid import hybrid_method
 
-from db.config import SELF_DESCRIPTION_MAX_LEN
-
-from .base import Base, CleanModel
+from .user_data import UserData
+from .rating import Rating
 
 
-class User(Base, CleanModel):
+class User(UserData):
     __tablename__ = "user_data"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-
-    # TODO: get reed of
-    telegram_id: Mapped[int]
-    # get reed of magic number '32'
-    telegram_handle: Mapped[str] = mapped_column(String(32))
-    name: Mapped[str] = mapped_column(String(32))
-    age: Mapped[int]
-    # TODO:
-    sex: Mapped[str]
-    city: Mapped[str]
-
-    relationship_goal: Mapped[Optional[str]]
-    interests: Mapped[Set[str]] = mapped_column(ARRAY(String(32)))
-    photo: Mapped[str]
-    self_description: Mapped[str] = mapped_column(
-        String(SELF_DESCRIPTION_MAX_LEN))
-
-    # TODO: exact types
-    min_preferred_age: Mapped[int]
-    max_preferred_age: Mapped[int]
-    preferred_partner_interests: Mapped[Set[str]] = mapped_column(ARRAY(String(32)))
-
-    # waiting for new users to register
-    in_waiting_pool: Mapped[bool] = mapped_column(default=False)
+    __mapper_args__ = {"polymorphic_identity": "user"}
 
 
     @staticmethod
@@ -146,17 +117,25 @@ class User(Base, CleanModel):
         return self.sex != subject.sex
 
     @hybrid_method
+    def __is_not_rated_by(self, subject: User) -> bool:
+        return all([r.subj_id != subject.id for r in self.backward_ratings])
+
+    @__is_not_rated_by.expression
+    @classmethod
+    def __is_not_rated_by(cls, subject: User) -> SQLColumnExpression[bool]:
+        return ~cls.backward_ratings.any(Rating.subj_id == subject.id)
+
+    @hybrid_method
     def is_eligible_candidate_for(self, subject: User) -> bool:
         return (
             (self.__is_eligible_age_for(subject))
             &
             (self.__is_eligible_sex_for(subject))
+            &
+            (self.__is_not_rated_by(subject))
         )
 
 
-    # @hybrid_method
-    # def get_score_as_partner_of(self, subject: User) -> float
-    #     return (
 
     async def insert_to(
         self,
