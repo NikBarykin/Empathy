@@ -92,6 +92,7 @@ async def process_callback_rated(
             async_session=async_session,
             )
 
+
 async def process_callback_already_rated(
         callback: types.CallbackQuery,
         ):

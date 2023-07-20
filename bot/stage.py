@@ -7,71 +7,69 @@ from aiogram import Router, Bot
 from typing import List, Type
 
 
-# class StageMeta(type(StatesGroup), ABCMeta):
-#     pass
-
-
 # TODO: make abstract
 class Stage(StatesGroup):
-    StageType = Type[Stage]
-
-    next_stage: Stage = None
+    @staticmethod
+    async def prepare(state: FSMContext) -> None:
+        raise NotImplementedError("Should be implemented in subclass")
 
     @staticmethod
-    # @abstractmethod
-    async def prepare(user_id: int, state: FSMContext) -> None:
-        pass
-
-    @staticmethod
-    # @abstractmethod
     def register(router: Router) -> None:
-        pass
+        raise NotImplementedError("Should be implemented in subclass")
 
-    @staticmethod
-    def mark_completed(stage: StageType) -> None:
-        stage.completed = True
 
-    @staticmethod
-    def mark_uncompleted(stage: StageType) -> None:
-        stage.completed = False
+    # @staticmethod
+    # async def next(
+    #     stage: StageType,
+    #     user_id: int,
+    #     state: FSMContext,
+    # ) -> None:
+    #     next_stage: Stage = stage.next_stage
+    #     if next_stage is not None:
+    #         await state.set_state(next_stage.state)
+    #         await next_stage.prepare(user_id, state)
 
-    @staticmethod
-    async def next(
-        stage: Type[Stage],
-        user_id: int,
-        state: FSMContext,
-    ) -> None:
-        next_stage: Stage = stage.next_stage
-        if next_stage is not None:
-            await state.set_state(next_stage.state)
-            await next_stage.prepare(user_id, state)
+    # @staticmethod
+    # def initialize(
+    #     bot: Bot,
+    #     router: Router,
+    #     start_stage: StageType,
+    #     personal_stages: List[StageType],
+    #     match_stage: StageType,
+    #     overwrite_stages: List[StageType],
+    # ) -> None:
+    #     Stage.bot = bot
 
-    @staticmethod
-    def initialize(
-        bot: Bot,
-        start_stage: StageType,
-        personal_stages: List[StageType],
-        preference_stages: List[StageType],
-        match_stages: List[StageType],
-    ) -> None:
-        Stage.bot = bot
-        Stage.start_stage = start_stage
-        Stage.personal_stages = personal_stages
-        Stage.preference_stages = preference_stages
-        Stage.match_stages = match_stages
+    #     Stage.start_stage = start_stage
+    #     Stage.personal_stages = { stage.name: stage for stage in personal_stages }
+    #     Stage.preference_stages = { stage.name: stage for stage in preference_stages }
+    #     Stage.match_stages = match_stages
 
-    @staticmethod
-    def chain_stages(stages: List[Type[Stage]]) -> None:
-        """
-        The last stage chains to itself
-        """
-        for i in range(len(stages)):
-            next_stage_i: int = i + int(i + 1 < len(stages))
-            stages[i].next_stage = stages[next_stage_i]
+    #     all_stages = (
+    #         [start_stage] + personal_stages + preference_stages + match_stages
+    #     )
 
-    @staticmethod
-    def register_stages(stages: List[Type[Stage]], router: Router) -> None:
-        for stage in stages:
-            stage.register(router)
+    #     Stage.mark_uncompleted_stages(all_stages)
+    #     Stage.register_stages(all_stages, router)
 
-    def
+
+
+    # @staticmethod
+    # def overwrite_stage():
+
+
+    # @staticmethod
+    # def chain_stages(stages: List[Type[Stage]]) -> None:
+    #     """
+    #     The last stage chains to itself
+    #     """
+    #     for i in range(len(stages)):
+    #         next_stage_i: int = i + int(i + 1 < len(stages))
+    #         stages[i].next_stage = stages[next_stage_i]
+
+    # @staticmethod
+    # def register_stages(stages: List[StageType], router: Router) -> None:
+    #     for stage in stages:
+    #         stage.register(router)
+
+StageType = Type[Stage]

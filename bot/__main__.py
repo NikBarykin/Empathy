@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import sys
+from stages_initialization import init_stages
 
-from aiogram import Bot, Dispatcher, F, types
+from aiogram import Bot, Dispatcher, F, types, Router
 from aiogram.filters import Text
 from aiogram.fsm.state import State, StatesGroup, any_state
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -11,10 +12,30 @@ from sqlalchemy.engine import URL
 # asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-import command_start
-import matching
-import personal
-import preference
+# Stages
+from stage import Stage
+from command_start import StartStage
+
+# Personal
+from personal.name import NameStage
+from personal.age import AgeStage
+from personal.sex import SexStage
+from personal.city import CityStage
+from personal.relationship_goal import RelationshipGoalStage
+from interests.preferred_interests import PreferredInterestsStage
+from personal.photo import PhotoStage
+from personal.self_description import SelfDescriptionStage
+
+# Preferences
+from preference.min_preferred_age import MinPreferredAgeStage
+from preference.max_preferred_age import MaxPreferredAgeStage
+from interests.personal_interests import PersonalInterestsStage
+
+
+
+from register_stage import RegisterStage
+from matching.stage import MatchStage
+
 from config import DATABASE_URL, TOKEN
 from db.base import Base
 from db.engine import (construct_async_engine, get_async_sessionmaker,
@@ -25,18 +46,24 @@ async def dummy(callback: types.CallbackQuery) -> None:
     await callback.answer()
 
 
-def include_all_routers(dp: Dispatcher) -> None:
-    dp.include_router(command_start.router)
-    dp.include_router(personal.router)
-    dp.include_router(preference.router)
-    dp.include_router(matching.router)
+# def include_all_routers(dp: Dispatcher) -> None:
+#     dp.include_router(command_start.router)
+#     dp.include_router(personal.router)
+#     dp.include_router(preference.router)
+#     dp.include_router(matching.router)
 
-    # dummy endpoint
-    dp.callback_query.register(
-        dummy,
-        Text("pass"),
-        any_state,
-    )
+#     # dummy endpoint
+#     dp.callback_query.register(
+#         dummy,
+#         Text("pass"),
+#         any_state,
+#     )
+
+
+def setup_stages(bot: Bot, router: Router):
+    Stage.chain_stages(STAGES)
+    Stage.register_stages(STAGES, router)
+    Stage.set_bot(bot)
 
 
 def configure_logging() -> None:
@@ -48,6 +75,7 @@ def configure_logging() -> None:
     )
 
 async def bot_start(logger: logging.Logger) -> None:
+
     configure_logging()
 
     # TODO: redis
@@ -56,18 +84,43 @@ async def bot_start(logger: logging.Logger) -> None:
     bot = Bot(token=TOKEN)
     dp = Dispatcher(storage=storage)
 
-    include_all_routers(dp)
+    Stage.bot = bot
+
+    init_stages(
+        router=dp,
+        start_stage=StartStage,
+        personal_stages=[
+            NameStage,
+            AgeStage,
+            SexStage,
+            CityStage,
+            RelationshipGoalStage,
+            PersonalInterestsStage,
+            PhotoStage,
+            SelfDescriptionStage,
+        ],
+        preference_stages=[
+            MinPreferredAgeStage,
+            MaxPreferredAgeStage,
+            PreferredInterestsStage,
+        ],
+        register_stage=RegisterStage,
+        match_stage=MatchStage,
+        overwrite_stages=[
+        ],
+        )
 
     engine = construct_async_engine(DATABASE_URL)
 
     await proceed_schemas(engine, Base.metadata)
+
+    Stage.async_session = get_async_sessionmaker(engine)
 
     # skip messages
     await bot.delete_webhook(drop_pending_updates=True)
 
     await dp.start_polling(
         bot,
-        async_session=get_async_sessionmaker(engine),
         logger=logger,
     )
 

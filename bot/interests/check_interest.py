@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from constants import CHECK_MARK_EMOJI, INTERESTS, NO_INTERESTS
-from personal import photo
+# from personal import photo
 from user_state import UserState
 
 from .prepare import get_inline_kb, get_interests, get_interests_text, get_interests_key

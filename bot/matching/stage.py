@@ -1,13 +1,23 @@
-from aiogram import Bot, types
+from stage import Stage
+from command_start import get_id
+
+from matching.match import get_next_match
+from matching.callback_rated import process_callback_rated, process_callback_already_rated
+from matching.rating_callback_factory import RatingCallbackFactory
+
+from aiogram import Router
+from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
-from db.match import find_match, get_user_by_telegram_id
-from db.user import User
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from user_state import UserState
+from aiogram.filters import Text
 
-from matching.keyboards import get_inline_kb
 
+class MatchStage(Stage):
+    state = State()
+    name: str = "match"
+
+    @staticmethod
+    async def prepare(state: FSMContext) -> None:
+        await get_next_match(Stage.bot, await get_id(state), Stage.async_session)
 
 async def process_no_partner_yet(
     bot: Bot,
@@ -50,3 +60,17 @@ async def get_next_match(
         await process_no_partner_yet(bot, user_telegram_id, async_session)
     else:
         await process_found_partner(bot, user_telegram_id, partner)
+
+    @staticmethod
+    def register(router: Router) -> None:
+        router.callback_query.register(
+            process_callback_rated,
+            RatingCallbackFactory.filter(),
+            MatchStage.state,
+        )
+
+        router.callback_query.register(
+            process_callback_already_rated,
+            Text("already_rated"),
+            MatchStage.state,
+        )

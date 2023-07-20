@@ -7,7 +7,7 @@ from aiogram.types import Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 from constants import (CHECK_MARK_EMOJI, INTEREST_PAGES, INTERESTS,
                        NO_INTEREST_PAGES, NO_INTERESTS)
-from personal import photo
+# from personal import photo
 from user_state import UserState
 
 
@@ -110,8 +110,6 @@ async def process_callback_go_page(
             reply_markup=await get_inline_kb(state),
             )
     await callback.answer()
-
-
 
 
 async def prepare_interests(

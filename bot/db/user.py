@@ -7,35 +7,81 @@ from sqlalchemy import SQLColumnExpression, case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.ext.hybrid import hybrid_method
 
+from aiogram.fsm.context import FSMContext
+
 from .user_data import UserData
 from .rating import Rating
+
+# Stages
+# Personal
+from personal.name import NameStage
+from personal.age import AgeStage
+from personal.sex import SexStage
+from personal.city import CityStage
+from personal.relationship_goal import RelationshipGoalStage
+from interests.preferred_interests import PreferredInterestsStage
+from personal.photo import PhotoStage
+from personal.self_description import SelfDescriptionStage
+
+# Preferences
+from preference.min_preferred_age import MinPreferredAgeStage
+from preference.max_preferred_age import MaxPreferredAgeStage
+from interests.personal_interests import PersonalInterestsStage
+
+from typing import Dict
 
 
 class User(UserData):
     __tablename__ = "user_data"
     __mapper_args__ = {"polymorphic_identity": "user"}
 
-
     @staticmethod
-    def from_fsm_data(fsm_state_data) -> User:
-        # TODO:
-        argument_names = (
-            "telegram_id",
-            "telegram_handle",
-            "name",
-            "age",
-            "sex",
-            "city",
-            "relationship_goal",
-            "interests",
-            "photo",
-            "self_description",
-            "min_preferred_age",
-            "max_preferred_age",
-            "preferred_partner_interests",
+    def from_fsm_data(data: Dict[str, Any]) -> User:
+        fields_and_stages = {
+            "name": NameStage,
+            "age": AgeStage,
+            "sex": SexStage,
+            "city": CityStage,
+            "relationship_goal": RelationshipGoalStage,
+            "interests": PreferredInterestsStage,
+            "photo": PhotoStage,
+            "self_description": SelfDescriptionStage,
+            # preference
+            "min_preferred_age": MinPreferredAgeStage,
+            "max_preferred_age": MaxPreferredAgeStage,
+            "preferred_partner_interests": PreferredInterestsStage,
+        }
+        return User(
+            telegram_id=data['id'],
+            telegram_handle=data['handle'],
+            **{field: data[stage.name]
+               for field, stage in fields_and_stages.items()},
         )
 
-        return User(**{arg_name: fsm_state_data[arg_name] for arg_name in argument_names})
+    # @staticmethod
+    # def from_fsm_state(state: FSMContext) -> User:
+    #     return User(
+    #         telegram_id=get_id(state),
+
+    #     )
+    #     # TODO:
+    #     argument_names = (
+    #         "telegram_id",
+    #         "telegram_handle",
+    #         "name",
+    #         "age",
+    #         "sex",
+    #         "city",
+    #         "relationship_goal",
+    #         "interests",
+    #         "photo",
+    #         "self_description",
+    #         "min_preferred_age",
+    #         "max_preferred_age",
+    #         "preferred_partner_interests",
+    #     )
+
+    #     return User(**{arg_name: fsm_state_data[arg_name] for arg_name in argument_names})
 
     @hybrid_method
     def __get_relationship_goal_score_as_partner_of(self, subject: User) -> float:
