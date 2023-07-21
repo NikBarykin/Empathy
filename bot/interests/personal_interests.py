@@ -1,6 +1,8 @@
 import logging
 from .base import BaseStage
 
+from constants import NO_INTERESTS
+
 from aiogram import Router, types
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.fsm.state import State
@@ -11,7 +13,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 class PersonalInterestsStage(BaseStage):
     state = State()
     name: str = "твои интересы"
-    question_text: str = "Отметь свои интересы"
+    question_text: str = f"Отметь свои интересы ({NO_INTERESTS} шт.)"
     submit_text: str = "Твои отмеченные интересы"
 
     @staticmethod

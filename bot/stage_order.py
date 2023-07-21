@@ -18,6 +18,14 @@ async def __get_first_not_completed(state: FSMContext) -> StageType:
         "All stages are completed but uncompleted stage was required")
 
 
+async def prepare_stage_and_state(
+    stage: StageType,
+    state: FSMContext,
+) -> None:
+    await state.set_state(stage.state)
+    await stage.prepare(state)
+
+
 async def next_stage(
         stage: StageType,
         state: FSMContext,
@@ -25,6 +33,5 @@ async def next_stage(
     # order of the following two strings is important
     await AccomplishmentManager.mark_completed(stage, state)
     target_stage: StageType = await __get_first_not_completed(state)
-    await state.set_state(target_stage.state)
+    await prepare_stage_and_state(target_stage, state)
     logging.info(f"current state is {target_stage.state}")
-    await target_stage.prepare(state)

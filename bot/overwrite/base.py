@@ -1,44 +1,69 @@
-from stage import Stage
+from stage import Stage, StageType
+from stage_order import prepare_stage_and_state
+from command_start import get_id
+from one_alternative_from_filter import OneAlternativeFromFilter
+from accomplishment_manager import AccomplishmentManager
+from stage_mapper import StageMapper
+
+from aiogram import Router
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, Message
+from aiogram.fsm.state import State
+from aiogram.fsm.context import FSMContext
 
 
-class OverwriteStageBase(Stage):
-    @staticmethod
-    def get_stage_mapper() -> StageMapper:
-        raise NotImplementedError("Should be implemented in subclass")
-
-    @staticmethod
-    def get_state():
-        raise NotImplementedError("Should be implemented in subclass")
-
-    @staticmethod
-    async def prepare():
-        Stage.bot.send_message(user_id, "Какую стадию изменить")
-
-    @staticmethod
-    async def process(
-        message: Message,
-        state: FSMContext,
-    ) -> None:
-        stage_mapper: StageMapper = get_stage_mapper()
-        target_stage: StageType = stage_mapper[message.text]
-        await AccomplishmentManager.mark_uncompleted(target_stage, state)
-        await target_stage.prepare(
-            message.from_user.id, state
+def produce_overwrite_stage(
+    stage_name: str,
+    mapper: StageMapper,
+) -> StageType:
+    def get_kb():
+        kb = ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text=stage_name)] for stage_name in mapper.keys()
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True,
         )
+        return kb
 
-    @staticmethod
-    async def process_invalid_value(message: Message) -> None:
-        message.answer("Неизвестная позиция")
+    class OverwriteStageBase(Stage):
+        state = State(state=stage_name)
+        name: str = stage_name
 
-    @staticmethod
-    def register(router: Router):
-        router.message.register(
-            OverwriteStageBase.process,
-            F.text.in_(get_stage_mapper.keys())
-            get_state(),
-        )
+        @staticmethod
+        async def prepare(state: FSMContext):
+            await Stage.bot.send_message(
+                await get_id(state),
+                "Выбери конкретную стадию",
+                reply_markup=get_kb(),
+            )
 
-        router.message.register(
-            OverwriteStageBase.process_invalid_value,
-            get_state().
-        )
+        @staticmethod
+        async def process(
+            message: Message,
+            state: FSMContext,
+        ) -> None:
+            target_stage: StageType = mapper[message.text.lower()]
+
+            await AccomplishmentManager.mark_uncompleted(target_stage, state)
+            await AccomplishmentManager.mark_uncompleted(
+                Stage.register_stage, state)
+
+            await prepare_stage_and_state(target_stage, state)
+
+        @staticmethod
+        async def process_invalid_value(message: Message) -> None:
+            message.answer("Неизвестная позиция")
+
+        @staticmethod
+        def register(router: Router):
+            router.message.register(
+                OverwriteStageBase.process,
+                OneAlternativeFromFilter(mapper.keys()),
+                OverwriteStageBase.state,
+            )
+
+            router.message.register(
+                OverwriteStageBase.process_invalid_value,
+                OverwriteStageBase.state,
+            )
+    return OverwriteStageBase

@@ -31,10 +31,13 @@ from preference.min_preferred_age import MinPreferredAgeStage
 from preference.max_preferred_age import MaxPreferredAgeStage
 from interests.personal_interests import PersonalInterestsStage
 
-
-
 from register_stage import RegisterStage
 from matching.stage import MatchStage
+
+# overwrite
+from overwrite.start import OverwriteStartStage
+from overwrite.personal import OverwritePersonalStage
+from overwrite.preference import OverwritePreferenceStage
 
 from config import DATABASE_URL, TOKEN
 from db.base import Base
@@ -107,6 +110,9 @@ async def bot_start(logger: logging.Logger) -> None:
         register_stage=RegisterStage,
         match_stage=MatchStage,
         overwrite_stages=[
+            OverwriteStartStage,
+            OverwritePersonalStage,
+            OverwritePreferenceStage,
         ],
         )
 

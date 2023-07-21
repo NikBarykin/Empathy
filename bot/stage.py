@@ -9,6 +9,10 @@ from typing import List, Type
 
 # TODO: make abstract
 class Stage(StatesGroup):
+    bot = None
+    async_session = None
+    register_stage = None
+
     @staticmethod
     async def prepare(state: FSMContext) -> None:
         raise NotImplementedError("Should be implemented in subclass")
@@ -16,6 +20,7 @@ class Stage(StatesGroup):
     @staticmethod
     def register(router: Router) -> None:
         raise NotImplementedError("Should be implemented in subclass")
+
 
 
     # @staticmethod

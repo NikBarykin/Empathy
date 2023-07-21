@@ -1,13 +1,21 @@
+import logging
 from stage import Stage
+
+from register_overwrite_init_stage import RegisterOverwriteInitSubstage
+
+from overwrite.start import OverwriteStartStage
+
+
 from command_start import get_id
 from matching.stage import MatchStage
 
 from stage_order import next_stage
 from db.user import User
-import logging
 
+from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
+from aiogram import F, Router
 
 from sqlalchemy import select
 
@@ -36,9 +44,14 @@ class RegisterStage(Stage):
     @staticmethod
     async def prepare(state: FSMContext) -> None:
         await RegisterStage.create_and_insert_user(state)
+
+        await RegisterOverwriteInitSubstage.prepare(state)
+
         await next_stage(RegisterStage, state)
         await RegisterStage.notify_waiting_pool()
 
+
+
     @staticmethod
-    def register(*args, **kwargs) -> None:
-        pass
+    def register(router: Router) -> None:
+        RegisterOverwriteInitSubstage.register(router)

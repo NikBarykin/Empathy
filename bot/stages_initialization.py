@@ -1,4 +1,4 @@
-from stage import StageType
+from stage import Stage, StageType
 from stage_mapper import init_personal_mapper, init_preference_mapper
 from stage_order import order_stages
 
@@ -23,6 +23,8 @@ def init_stages(
     stage_sequence = (
         [start_stage] + personal_stages + preference_stages + [register_stage, match_stage]
     )
+    Stage.register_stage = register_stage
+
     order_stages(*stage_sequence)
     register_stages(router, *stage_sequence, *overwrite_stages)
 

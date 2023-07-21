@@ -10,6 +10,7 @@ from matching.keyboards import get_inline_kb
 from matching.rating_callback_factory import RatingCallbackFactory
 
 from aiogram import Router, types
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Text
@@ -62,7 +63,7 @@ class MatchStage(Stage):
         await User.put_in_waiting_pool(
             telegram_id=user_telegram_id, async_session=Stage.async_session)
 
-        await Stage.bot.send_message( user_telegram_id, text=(
+        await Stage.bot.send_message(user_telegram_id, text=(
             "На данный момент партнеров не найдено. "
             "Когда появятся подходящие варианты, мы обязательно тебе напишем!😉"),
                                      reply_markup=types.ReplyKeyboardRemove())
