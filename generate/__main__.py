@@ -31,11 +31,11 @@ async def main() -> None:
         sex = random.choice(SEXES)
         age = random.randint(MIN_AGE, MAX_AGE)
 
-        if sex == "мужчина":
+        if sex == SEXES[0]:
             names = MALE_NAMES
             photos = MALE_PHOTOS
             descriptions = MALE_SELF_DESCRIPTIONS
-        elif sex == "женщина":
+        elif sex == SEXES[1]:
             names = FEMALE_NAMES
             photos = FEMALE_PHOTOS
             descriptions = FEMALE_SELF_DESCRIPTIONS
@@ -45,7 +45,7 @@ async def main() -> None:
         interests = {random.choice(INTERESTS) for _ in range(NO_INTERESTS)}
 
         user = User(
-            telegram_id=telegram_id,
+            id=telegram_id,
             telegram_handle=TELEGRAM_HANDLE,
             name=random.choice(names),
             age=age,

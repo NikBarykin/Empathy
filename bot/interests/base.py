@@ -42,11 +42,11 @@ class BaseStage(Stage):
         interest_page_i: int = await BaseStage.get_page_i(state)
 
         for interest in INTEREST_PAGES[interest_page_i]:
-            postscript = (CHECK_MARK_EMOJI if interest in checked_interests
-                          else "")
+            prefix = (CHECK_MARK_EMOJI if interest in checked_interests
+                      else "")
 
             builder.button(
-                    text=interest + postscript,
+                    text=prefix + interest,
                     callback_data=f"interest_{interest}",
                     )
 
@@ -108,7 +108,7 @@ class BaseStage(Stage):
         builder = InlineKeyboardBuilder()
         for interest in await BaseStage.get_interests(stage, state):
             builder.button(
-                text=interest + CHECK_MARK_EMOJI,
+                text=CHECK_MARK_EMOJI + interest,
                 # TODO:
                 # no callback
                 callback_data="pass",

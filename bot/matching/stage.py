@@ -65,8 +65,7 @@ class MatchStage(Stage):
 
         await Stage.bot.send_message(user_telegram_id, text=(
             "На данный момент партнеров не найдено. "
-            "Когда появятся подходящие варианты, мы обязательно тебе напишем!😉"),
-                                     reply_markup=types.ReplyKeyboardRemove())
+            "Когда появятся подходящие варианты, мы обязательно тебе напишем!😉"))
 
     @staticmethod
     async def process_found_partner(
@@ -82,7 +81,7 @@ class MatchStage(Stage):
                 partner.photo,
                 caption=text,
                 reply_markup=get_inline_kb(
-                    user_telegram_id, partner.telegram_id),
+                    user_telegram_id, partner.id),
                 )
 
     @staticmethod
@@ -130,12 +129,12 @@ class MatchStage(Stage):
                 reply_text = "🔥У вас взаимная симпатия с @{}🔥"
 
                 await Stage.bot.send_message(
-                        obj.telegram_id,
+                        obj.id,
                         text=reply_text.format(subj.telegram_handle),
                         )
 
                 await Stage.bot.send_message(
-                        subj.telegram_id,
+                        subj.id,
                         text=reply_text.format(obj.telegram_handle),
                         )
 

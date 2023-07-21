@@ -35,7 +35,7 @@ async def process_found_partner(
             user_telegram_id,
             partner.photo,
             caption=text,
-            reply_markup=get_inline_kb(user_telegram_id, partner.telegram_id),
+            reply_markup=get_inline_kb(user_telegram_id, partner.id),
             )
 
 

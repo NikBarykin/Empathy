@@ -18,7 +18,7 @@ router = Router()
 #         async_session: async_sessionmaker[AsyncSession],
 #         ) -> bool:
 #     async with async_session() as session:
-#         stmt = select(User.id).where(User.telegram_id == telegram_id)
+#         stmt = select(User.id).where(User.id == telegram_id)
 #         result = await session.execute(stmt)
 #         return result.scalars().first() is not None
 

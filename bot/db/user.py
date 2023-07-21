@@ -52,7 +52,7 @@ class User(UserData):
             "preferred_partner_interests": PreferredInterestsStage,
         }
         return User(
-            telegram_id=data['id'],
+            id=data['id'],
             telegram_handle=data['handle'],
             **{field: data[stage.name]
                for field, stage in fields_and_stages.items()},
@@ -181,22 +181,30 @@ class User(UserData):
             (self.__is_not_rated_by(subject))
         )
 
-
-
     async def insert_to(
         self,
         async_session: async_sessionmaker[AsyncSession],
     ) -> None:
         async with async_session() as session:
             async with session.begin():
-                session.add(self)
+                await session.merge(self)
+
+        # async with async_session() as session:
+        #     async with session.begin():
+        #         await session.merge(self)
+
+        async with async_session() as session:
+            stmt = select(User).where(User.id==self.id)
+            found_user = (await session.execute(stmt)).scalars().one()
+            logging.info(f"expected_user: {self}")
+            logging.info(f"found_user: {found_user}")
 
     @staticmethod
     async def get_by_telegram_id(
         telegram_id: int,
         session: AsyncSession,
     ) -> User:
-        stmt = select(User).where(User.telegram_id == telegram_id)
+        stmt = select(User).where(User.id == telegram_id)
         async with session.begin():
             result = await session.execute(stmt.limit(1))
         return result.scalars().one()

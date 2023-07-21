@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from sqlalchemy import select
@@ -25,12 +26,22 @@ async def check_liked(
     return result.scalars().first() is not None
 
 
+async def get_user_by_telegram_id_2(
+        telegram_id: int,
+        async_session: async_sessionmaker[AsyncSession],
+        ) -> User:
+    stmt = select(User).where(User.id == telegram_id)
+    async with async_session() as session:
+        async with session.begin():
+            result = await session.execute(stmt.limit(1))
+    return result.scalars().one()
+
 # TODO: optimize
 async def get_user_by_telegram_id(
         telegram_id: int,
         session: AsyncSession,
         ) -> User:
-    stmt = select(User).where(User.telegram_id == telegram_id)
+    stmt = select(User).where(User.id == telegram_id)
     async with session.begin():
         result = await session.execute(stmt.limit(1))
     return result.scalars().one()
@@ -40,6 +51,7 @@ async def get_match_by_user(
         subject: User,
         session: AsyncSession,
         ) -> Optional[User]:
+    logging.info(f"subject {subject}")
     stmt = (
         select(User)
         .where(User.is_eligible_candidate_for(subject))
@@ -54,9 +66,9 @@ async def find_match(
         telegram_id: int,
         async_session: async_sessionmaker[AsyncSession],
         ) -> Optional[User]:
-
+    subject = await get_user_by_telegram_id_2(telegram_id, async_session)
+    logging.info(f"got user by telegram id={telegram_id}, resulting_user={subject}")
     async with async_session() as session:
-        subject = await get_user_by_telegram_id(telegram_id, session)
 
         result = await get_match_by_user(subject, session)
 

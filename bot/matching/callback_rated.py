@@ -75,12 +75,12 @@ async def process_callback_rated(
             reply_text = "🔥У вас взаимная симпатия с @{}🔥"
 
             await bot.send_message(
-                    obj.telegram_id,
+                    obj.id,
                     text=reply_text.format(subj.telegram_handle),
                     )
 
             await bot.send_message(
-                    subj.telegram_id,
+                    subj.id,
                     text=reply_text.format(obj.telegram_handle),
                     )
 

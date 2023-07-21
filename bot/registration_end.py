@@ -22,7 +22,7 @@ async def notify_waiting_pool(
                 logging.debug(f"{user.name} was notified""")
                 await get_next_match(
                     bot,
-                    user.telegram_id,
+                    user.id,
                     async_session,
                 )
                 user.in_waiting_pool = False
