@@ -87,7 +87,7 @@ class MatchStage(Stage):
     @staticmethod
     async def get_next_match(
         user_telegram_id: int,
-        do_nothing_on_not_found: bool,
+        do_nothing_on_not_found: bool=False,
     ):
         partner = await find_match(user_telegram_id, Stage.async_session)
 
