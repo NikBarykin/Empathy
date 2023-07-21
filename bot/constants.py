@@ -1107,7 +1107,7 @@ SEXES = ("мужчина", "женщина")
 NEUTRAL_REL_GOAL = "не определился"
 RELATIONSHIP_GOALS = ("долгосрочные отношения", "краткосрочные отношения", "просто общение", NEUTRAL_REL_GOAL)
 
-NO_INTERESTS = 1
+NO_INTERESTS = 5
 INTERESTS = (
     "Harry Potter",
     "уход за собой",

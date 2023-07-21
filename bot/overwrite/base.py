@@ -1,3 +1,5 @@
+import logging
+
 from stage import Stage, StageType
 from stage_order import prepare_stage_and_state
 from command_start import get_id
@@ -47,6 +49,8 @@ def produce_overwrite_stage(
             await AccomplishmentManager.mark_uncompleted(target_stage, state)
             await AccomplishmentManager.mark_uncompleted(
                 Stage.register_stage, state)
+
+            logging.info(f"target_stage: {target_stage.name} is being overwritten")
 
             await prepare_stage_and_state(target_stage, state)
 

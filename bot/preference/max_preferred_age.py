@@ -3,7 +3,7 @@ from age_filter import AgeFilter
 
 
 MaxPreferredAgeStage = produce_simple_get_stage(
-    stage_name="Максимальный возраст партнера",
+    stage_name="максимальный возраст партнера",
     question_text="Укажи максимальный возраст для твоего партнера",
     invalid_value_text="Некорректное значение возраста",
     data_update_value_getter=lambda message: int(message.text),
