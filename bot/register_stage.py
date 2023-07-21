@@ -35,13 +35,13 @@ class RegisterStage(Stage):
         async with Stage.async_session() as session:
             async with session.begin():
                 for user in (await session.scalars(stmt)).all():
-                    if user.id != new_user.id:
-                        logging.debug(f"{user.name} was notified""")
-                        await MatchStage.get_next_match(
-                            user.id,
-                            # new_user,
-                        )
-                        user.in_waiting_pool = False
+                    logging.debug(f"{user.name} was notified""")
+                    await MatchStage.get_next_match(
+                        user.id,
+                        do_nothing_on_not_found=True,
+                        # new_user,
+                    )
+                    user.in_waiting_pool = False
 
     @staticmethod
     async def create_and_insert_user(state: FSMContext) -> None:

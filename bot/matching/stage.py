@@ -87,11 +87,13 @@ class MatchStage(Stage):
     @staticmethod
     async def get_next_match(
         user_telegram_id: int,
+        do_nothing_on_not_found: bool,
     ):
         partner = await find_match(user_telegram_id, Stage.async_session)
 
         if partner is None:
-            await MatchStage.process_no_partner_yet(user_telegram_id)
+            if not do_nothing_on_not_found:
+                await MatchStage.process_no_partner_yet(user_telegram_id)
         else:
             await MatchStage.process_found_partner(user_telegram_id, partner)
 
