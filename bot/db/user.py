@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from constants import NEUTRAL_REL_GOAL, NO_INTERESTS
-from sqlalchemy import SQLColumnExpression, case, func, select
+from sqlalchemy import SQLColumnExpression, case, func, select, or_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.ext.hybrid import hybrid_method
 
@@ -85,7 +85,7 @@ class User(UserData):
 
     @hybrid_method
     def __get_relationship_goal_score_as_partner_of(self, subject: User) -> float:
-        if subject.relationship_goal == NEUTRAL_REL_GOAL:
+        if subject.relationship_goal == NEUTRAL_REL_GOAL or self.relationship_goal == NEUTRAL_REL_GOAL:
             return 0
 
         if self.relationship_goal == subject.relationship_goal:
@@ -100,7 +100,8 @@ class User(UserData):
     def __get_relationship_goal_score_as_partner_of(
         cls, subject: User) -> SQLColumnExpression[float]:
         return case(
-            (subject.relationship_goal == NEUTRAL_REL_GOAL, 0),
+            (or_(subject.relationship_goal == NEUTRAL_REL_GOAL,
+                 cls.relationship_goal == NEUTRAL_REL_GOAL), 0),
             else_=case(
                 (cls.relationship_goal == subject.relationship_goal, +25),
                 else_=-25
