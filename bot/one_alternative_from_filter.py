@@ -9,4 +9,5 @@ class OneAlternativeFromFilter(BaseFilter):
         self.alternatives = alternatives
 
     async def __call__(self, message: Message) -> bool:
-        return message.text.lower() in self.alternatives
+        return (message.text is not None
+                and message.text.lower() in self.alternatives)
