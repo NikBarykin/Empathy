@@ -1,7 +1,7 @@
 from stage import Stage
 from simple_get_stage import produce_simple_get_stage
 from stage_order import next_stage
-from command_start import get_id
+from get_id import get_id
 
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext

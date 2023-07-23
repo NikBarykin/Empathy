@@ -1,5 +1,5 @@
 from stage import Stage
-from command_start import get_id
+from get_id import get_id
 
 from user_state import UserState
 from stage_order import next_stage

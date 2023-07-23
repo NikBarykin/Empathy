@@ -1,5 +1,6 @@
 from stage import Stage
-from stage_order import next_stage
+from db.user import User
+from stage_order import next_stage, skip_form
 from aiogram import Bot, Router, types
 from aiogram.types import Message
 from aiogram.filters.command import Command
@@ -7,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from aiogram.fsm.state import default_state
+from typing import Optional
 
 # import registration_end
 # from db.user import User
@@ -29,6 +31,11 @@ class StartStage(Stage):
     id_key: int = "id"
     handle_key: int = "handle"
 
+    @staticmethod
+    async def get_user(target_id: int) -> Optional[User]:
+        async with Stage.async_session() as session:
+            stmt = select(User).where(User.id==target_id)
+            return (await session.execute(stmt)).scalars().first()
 
     @staticmethod
     async def prepare(state: FSMContext) -> None:
@@ -48,20 +55,23 @@ class StartStage(Stage):
         message: Message,
         state: FSMContext,
     ) -> None:
-        await state.update_data(**{
-            StartStage.id_key: message.from_user.id,
-            StartStage.handle_key: message.from_user.username,
-        })
+        user: Optional[User] = await StartStage.get_user(message.from_user.id)
+        if user is None:
+            await state.update_data(**{
+                StartStage.id_key: message.from_user.id,
+                StartStage.handle_key: message.from_user.username,
+            })
+        else:
+            await state.set_data(user.as_dict())
+            await skip_form(state)
+
         await next_stage(StartStage, state)
 
 
-async def get_id(state: FSMContext) -> int:
-    return (await state.get_data())[StartStage.id_key]
 
 
 async def get_handle(state: FSMContext) -> str:
     return (await state.get_data())[StartStage.handle_key]
-
 
 
 # @router.message(Command('start'))

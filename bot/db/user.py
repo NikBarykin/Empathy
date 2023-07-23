@@ -28,35 +28,47 @@ from preference.min_preferred_age import MinPreferredAgeStage
 from preference.max_preferred_age import MaxPreferredAgeStage
 from interests.personal_interests import PersonalInterestsStage
 
-from typing import Dict
+from typing import Set, List, Dict, Any
+
+
+fields_and_stages = {
+    "name": NameStage,
+    "age": AgeStage,
+    "sex": SexStage,
+    "city": CityStage,
+    "relationship_goal": RelationshipGoalStage,
+    "interests": PreferredInterestsStage,
+    "photo": PhotoStage,
+    "self_description": SelfDescriptionStage,
+    # preference
+    "min_preferred_age": MinPreferredAgeStage,
+    "max_preferred_age": MaxPreferredAgeStage,
+    "preferred_partner_interests": PreferredInterestsStage,
+}
+
+forward_data_keys_mapping = {
+    "id": "id",
+    "telegram_handle": "handle",
+    **{field: stage.name for field, stage in fields_and_stages.items()}
+}
 
 
 class User(UserData):
     __tablename__ = "user_data"
     __mapper_args__ = {"polymorphic_identity": "user"}
 
+
     @staticmethod
     def from_fsm_data(data: Dict[str, Any]) -> User:
-        fields_and_stages = {
-            "name": NameStage,
-            "age": AgeStage,
-            "sex": SexStage,
-            "city": CityStage,
-            "relationship_goal": RelationshipGoalStage,
-            "interests": PreferredInterestsStage,
-            "photo": PhotoStage,
-            "self_description": SelfDescriptionStage,
-            # preference
-            "min_preferred_age": MinPreferredAgeStage,
-            "max_preferred_age": MaxPreferredAgeStage,
-            "preferred_partner_interests": PreferredInterestsStage,
-        }
         return User(
-            id=data['id'],
-            telegram_handle=data['handle'],
-            **{field: data[stage.name]
-               for field, stage in fields_and_stages.items()},
-        )
+            **{field: data[data_key]
+               for field, data_key in forward_data_keys_mapping.items()})
+
+    def as_dict(self) -> Dict[str, Any]:
+        return {
+            data_key: getattr(self, field)
+            for field, data_key in forward_data_keys_mapping.items()
+        }
 
     # @staticmethod
     # def from_fsm_state(state: FSMContext) -> User:
@@ -111,7 +123,7 @@ class User(UserData):
     @hybrid_method
     def __get_number_of_interests_matching_with_preferences_of(
         self, subject: User) -> int:
-        return len(self.interests.intersection(subject.preferred_partner_interests))
+        return len(set(self.interests) & set(subject.preferred_partner_interests))
 
     # TODO: mark 'inline'
     @__get_number_of_interests_matching_with_preferences_of.expression

@@ -1,5 +1,5 @@
 from stage import Stage
-from command_start import get_id
+from get_id import get_id
 
 from db.rating import Rating
 from db.user import User
@@ -60,9 +60,6 @@ class MatchStage(Stage):
     async def process_no_partner_yet(
         user_telegram_id: int,
     ) -> None:
-        await User.put_in_waiting_pool(
-            telegram_id=user_telegram_id, async_session=Stage.async_session)
-
         await Stage.bot.send_message(user_telegram_id, text=(
             "На данный момент партнеров не найдено. "
             "Когда появятся подходящие варианты, мы обязательно тебе напишем!😉"))
@@ -76,13 +73,13 @@ class MatchStage(Stage):
         text = (f"{partner.name}, {partner.age}\n"
                 f"{partner.self_description}")
 
-        await Stage.bot.send_photo(
-                user_telegram_id,
-                partner.photo,
-                caption=text,
-                reply_markup=get_inline_kb(
-                    user_telegram_id, partner.id),
-                )
+        message: Message = await Stage.bot.send_photo(
+            user_telegram_id,
+            partner.photo,
+            caption=text,
+            reply_markup=get_inline_kb(
+                user_telegram_id, partner.id),
+        )
 
     @staticmethod
     async def get_next_match(
@@ -92,6 +89,9 @@ class MatchStage(Stage):
         partner = await find_match(user_telegram_id, Stage.async_session)
 
         if partner is None:
+            await User.put_in_waiting_pool(
+                telegram_id=user_telegram_id, async_session=Stage.async_session)
+
             if not do_nothing_on_not_found:
                 await MatchStage.process_no_partner_yet(user_telegram_id)
         else:

@@ -1,6 +1,6 @@
 from stage import Stage, StageType
 from stage_order import prepare_stage_and_state
-from command_start import get_id
+from get_id import get_id
 from one_alternative_from_filter import OneAlternativeFromFilter
 
 # aiogram

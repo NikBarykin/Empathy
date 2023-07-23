@@ -116,7 +116,7 @@ async def prepare_interests(
         message: Message,
         state: FSMContext,
         ):
-    await state.update_data(interests=set(), interest_page_i=0)
+    await state.update_data(interests=list(), interest_page_i=0)
     await state.set_state(UserState.interests)
     await message.answer(
             text=await get_interests_text(state),
@@ -128,7 +128,7 @@ async def prepare_preferred_partner_interests(
     message: Message,
     state: FSMContext,
 ) -> None:
-    await state.update_data(preferred_partner_interests=set(), interest_page_i=0)
+    await state.update_data(preferred_partner_interests=list(), interest_page_i=0)
     await state.set_state(UserState.preferred_partner_interests)
 
     await message.answer(

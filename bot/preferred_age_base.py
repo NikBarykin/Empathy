@@ -1,5 +1,5 @@
 from stage import Stage, StageType
-from command_start import get_id
+from get_id import get_id
 from stage_order import next_stage
 
 from aiogram.types import Message

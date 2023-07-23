@@ -1,5 +1,6 @@
 from __future__ import annotations
-from command_start import get_id
+from dummy_callback_factory import DummyCallbackFactory
+from get_id import get_id
 from stage import Stage, StageType
 from constants import INTEREST_PAGES, CHECK_MARK_EMOJI
 
@@ -10,7 +11,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from constants import NO_INTERESTS, NO_INTEREST_PAGES
 
-from typing import Set, Type, Dict
+from typing import Set, Type, Dict, Iterable
 
 from stage_order import next_stage
 
@@ -103,15 +104,15 @@ class BaseStage(Stage):
     @staticmethod
     async def get_submit_kb(
         stage: Type[BaseStage],
-        state: FSMContext,
+        interests: Iterable[str],
     ) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
-        for interest in await BaseStage.get_interests(stage, state):
+        for interest in interests:
             builder.button(
                 text=CHECK_MARK_EMOJI + interest,
                 # TODO:
                 # no callback
-                callback_data="pass",
+                callback_data=DummyCallbackFactory()
             )
 
         builder.adjust(1)
@@ -133,7 +134,7 @@ class BaseStage(Stage):
         stage: StageType,
         state: FSMContext,
     ) -> None:
-        await state.update_data(**{stage.name: set()})
+        await state.update_data(**{stage.name: list()})
         await BaseStage.set_page_i(state, 0)
         await Stage.bot.send_message(
             await get_id(state),
@@ -159,7 +160,7 @@ class BaseStage(Stage):
                     text="Превышено допустимое количество интересов")
                 return
 
-            interests.add(target_interest)
+            interests.append(target_interest)
 
         # TODO: ???
         await state.update_data(**{stage.name: interests})
@@ -196,17 +197,19 @@ class BaseStage(Stage):
                     text=f"Недостаточно интересов (должно быть {NO_INTERESTS})")
             return
 
-        await callback.message.edit_text(
-            text=stage.submit_text,
-            reply_markup=await BaseStage.get_submit_kb(stage, state),
-        )
-
-        await callback.answer()
-
         await next_stage(
             stage,
             state,
         )
+
+        await callback.answer()
+
+        await callback.message.edit_text(
+            text=stage.submit_text,
+            reply_markup=await BaseStage.get_submit_kb(stage, interests),
+        )
+
+
 
     @staticmethod
     def register_base(

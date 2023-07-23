@@ -1,4 +1,4 @@
-from command_start import get_id
+from get_id import get_id
 from stage_order import next_stage
 from stage import Stage, StageType
 

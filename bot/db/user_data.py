@@ -1,6 +1,6 @@
 from .config import SELF_DESCRIPTION_MAX_LEN
 from .base import Base, CleanModel
-from typing import Set
+from typing import Set, List, Dict, Any
 
 from sqlalchemy import String, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
@@ -30,7 +30,7 @@ class UserData(Base, CleanModel):
     city: Mapped[str]
 
     relationship_goal: Mapped[str]
-    interests: Mapped[Set[str]] = mapped_column(ARRAY(String(32)))
+    interests: Mapped[List[str]] = mapped_column(ARRAY(String(32)))
     photo: Mapped[str]
     self_description: Mapped[str] = mapped_column(
         String(SELF_DESCRIPTION_MAX_LEN))

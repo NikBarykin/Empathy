@@ -6,7 +6,7 @@ from stages_initialization import init_stages
 from aiogram import Bot, Dispatcher, F, types, Router
 from aiogram.filters import Text
 from aiogram.fsm.state import State, StatesGroup, any_state
-from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.redis import RedisStorage
 from sqlalchemy.engine import URL
 # sqlalchemy
 # asyncio
@@ -44,29 +44,14 @@ from db.base import Base
 from db.engine import (construct_async_engine, get_async_sessionmaker,
                        proceed_schemas)
 
+# redis
+from aioredis import Redis
 
-async def dummy(callback: types.CallbackQuery) -> None:
-    await callback.answer()
-
-
-# def include_all_routers(dp: Dispatcher) -> None:
-#     dp.include_router(command_start.router)
-#     dp.include_router(personal.router)
-#     dp.include_router(preference.router)
-#     dp.include_router(matching.router)
-
-#     # dummy endpoint
-#     dp.callback_query.register(
-#         dummy,
-#         Text("pass"),
-#         any_state,
-#     )
+from dummy_callback_factory import register_dummy_process_callback
+from notify_everyone_on_start import notify_everyone_on_start
 
 
-def setup_stages(bot: Bot, router: Router):
-    Stage.chain_stages(STAGES)
-    Stage.register_stages(STAGES, router)
-    Stage.set_bot(bot)
+
 
 
 def configure_logging() -> None:
@@ -77,15 +62,15 @@ def configure_logging() -> None:
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
 
-async def bot_start(logger: logging.Logger) -> None:
 
+async def bot_start(logger: logging.Logger) -> None:
     configure_logging()
 
     # TODO: redis
-    storage = MemoryStorage()
+    redis = Redis()
 
     bot = Bot(token=TOKEN)
-    dp = Dispatcher(storage=storage)
+    dp = Dispatcher(storage=RedisStorage(redis=redis))
 
     Stage.bot = bot
 
@@ -116,6 +101,8 @@ async def bot_start(logger: logging.Logger) -> None:
         ],
         )
 
+    register_dummy_process_callback(dp)
+
     engine = construct_async_engine(DATABASE_URL)
 
     await proceed_schemas(engine, Base.metadata)
@@ -124,6 +111,12 @@ async def bot_start(logger: logging.Logger) -> None:
 
     # skip messages
     await bot.delete_webhook(drop_pending_updates=True)
+
+    await notify_everyone_on_start(
+        "ВНИМАНИЕ\n"
+        "Бот был обновлен, "
+        "для продолжения работы отправьте команду /start"
+    )
 
     await dp.start_polling(
         bot,

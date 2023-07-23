@@ -1,5 +1,5 @@
 from stage import Stage
-from command_start import get_id
+from get_id import get_id
 from stage_order import prepare_stage_and_state
 from overwrite.start import OverwriteStartStage
 

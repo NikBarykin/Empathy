@@ -6,7 +6,7 @@ from register_overwrite_init_stage import RegisterOverwriteInitSubstage
 from overwrite.start import OverwriteStartStage
 
 
-from command_start import get_id
+from get_id import get_id
 from matching.stage import MatchStage
 
 from stage_order import next_stage
@@ -33,15 +33,18 @@ class RegisterStage(Stage):
         )
 
         async with Stage.async_session() as session:
-            async with session.begin():
-                for user in (await session.scalars(stmt)).all():
-                    logging.debug(f"{user.name} was notified""")
-                    await MatchStage.get_next_match(
-                        user.id,
-                        do_nothing_on_not_found=True,
-                        # new_user,
-                    )
-                    user.in_waiting_pool = False
+            for user in (await session.scalars(stmt)).all():
+                logging.debug(f"{user.name} was notified""")
+                logging.info(f"User {new_user.telegram_handle} registered and {user.telegram_handle} was notified about it")
+
+                user.in_waiting_pool = False
+                await session.commit()
+
+                await MatchStage.get_next_match(
+                    user.id,
+                    do_nothing_on_not_found=True,
+                    # new_user,
+                )
 
     @staticmethod
     async def create_and_insert_user(state: FSMContext) -> None:

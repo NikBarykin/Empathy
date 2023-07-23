@@ -1,5 +1,6 @@
 import logging
-from stage import StageType
+from stage_mapper import personal_mapper, preference_mapper
+from stage import StageType, Stage
 from accomplishment_manager import AccomplishmentManager
 from aiogram.fsm.context import FSMContext
 
@@ -35,3 +36,12 @@ async def next_stage(
     target_stage: StageType = await __get_first_not_completed(state)
     await prepare_stage_and_state(target_stage, state)
     logging.info(f"current state is {target_stage.state}")
+
+
+async def skip_form(state: FSMContext) -> None:
+    stages_to_skip = []
+    for mapper in [personal_mapper, preference_mapper]:
+        stages_to_skip += [stage for stage in mapper.values()]
+
+    for stage in stages_to_skip:
+        await AccomplishmentManager.mark_completed(stage, state)
