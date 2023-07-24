@@ -1,9 +1,10 @@
 from aiogram.filters.callback_data import CallbackData
+from aiogram.types import CallbackQuery
 from aiogram import Router
 
 
-async def dummy_process_callback(*args, **kwargs):
-    pass
+async def dummy_process_callback(callback: CallbackQuery, *args, **kwargs):
+    await callback.answer()
 
 
 class DummyCallbackFactory(CallbackData, prefix="dummy_does_nothing"):

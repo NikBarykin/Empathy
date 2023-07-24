@@ -24,7 +24,7 @@ class RegisterOverwriteInitSubstage(Stage):
     async def prepare(state: FSMContext) -> None:
         await Stage.bot.send_message(
             await get_id(state),
-            "Ты успешно зарегистрирован! Теперь тебе доступно редактирование профиля",
+            "Ты успешно зарегистрирован! Теперь тебе доступно редактирование анкеты",
             reply_markup=OVERWRITE_KB,
         )
 
