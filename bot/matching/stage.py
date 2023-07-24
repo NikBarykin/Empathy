@@ -5,6 +5,7 @@ from db.rating import Rating
 from db.user import User
 from db.match import check_liked, find_match, get_user_by_telegram_id
 
+from profile import Profile
 
 from matching.keyboards import get_inline_kb
 from matching.rating_callback_factory import RatingCallbackFactory
@@ -70,16 +71,24 @@ class MatchStage(Stage):
             partner: User,
             ) -> None:
 
-        text = (f"{partner.name}, {partner.age}\n"
-                f"{partner.self_description}")
+        profile = Profile(partner)
 
-        message: Message = await Stage.bot.send_photo(
+        await profile.send_to(
             user_telegram_id,
-            partner.photo,
-            caption=text,
             reply_markup=get_inline_kb(
                 user_telegram_id, partner.id),
         )
+
+#         text = (f"{partner.name}, {partner.age}\n"
+#                 f"{partner.self_description}")
+
+#         message: Message = await Stage.bot.send_photo(
+#             user_telegram_id,
+#             partner.photo,
+#             caption=text,
+#             reply_markup=get_inline_kb(
+#                 user_telegram_id, partner.id),
+#         )
 
     @staticmethod
     async def get_next_match(

@@ -1,7 +1,6 @@
 from stage import Stage
 from get_id import get_id
 
-from user_state import UserState
 from stage_order import next_stage
 
 from aiogram import Router, types

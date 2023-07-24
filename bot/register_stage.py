@@ -19,6 +19,8 @@ from aiogram import F, Router
 
 from sqlalchemy import select
 
+from profile import Profile
+
 
 class RegisterStage(Stage):
     state = State()
@@ -34,7 +36,6 @@ class RegisterStage(Stage):
 
         async with Stage.async_session() as session:
             for user in (await session.scalars(stmt)).all():
-                logging.debug(f"{user.name} was notified""")
                 logging.info(f"User {new_user.telegram_handle} registered and {user.telegram_handle} was notified about it")
 
                 user.in_waiting_pool = False
@@ -57,6 +58,8 @@ class RegisterStage(Stage):
         await user.insert_to(Stage.async_session)
 
         await RegisterOverwriteInitSubstage.prepare(state)
+
+        await Profile.send_to_yourself(user)
 
         await next_stage(RegisterStage, state)
         await RegisterStage.notify_waiting_pool_on_new_user(user)
