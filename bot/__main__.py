@@ -112,12 +112,6 @@ async def bot_start(logger: logging.Logger) -> None:
     # skip messages
     await bot.delete_webhook(drop_pending_updates=True)
 
-    await notify_everyone_on_start(
-        "ВНИМАНИЕ\n"
-        "Бот был обновлен, "
-        "для продолжения работы отправьте команду /start"
-    )
-
     await dp.start_polling(
         bot,
         logger=logger,
