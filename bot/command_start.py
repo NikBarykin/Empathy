@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from aiogram.fsm.state import default_state
 from typing import Optional
 
+from get_name import set_name
+
 # import registration_end
 # from db.user import User
 
@@ -61,6 +63,7 @@ class StartStage(Stage):
                 StartStage.id_key: message.from_user.id,
                 StartStage.handle_key: message.from_user.username,
             })
+            await set_name(state, message.from_user.first_name)
         else:
             await state.set_data(user.as_dict())
             await skip_form(state)

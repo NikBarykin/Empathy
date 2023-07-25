@@ -6,16 +6,22 @@ from overwrite.start import OverwriteStartStage
 from aiogram import Router, F
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.context import FSMContext
+from aiogram.filters import Text
+
+from db.match import get_user_by_telegram_id_2
+from db.user import User
+from profile import Profile
 
 
 OVERWRITE_PROFILE_TEXT = "Редактировать свою анкету"
+GET_PROFILE_TEXT = "Моя анкета"
 
 OVERWRITE_KB = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text=OVERWRITE_PROFILE_TEXT)]
+        [KeyboardButton(text=OVERWRITE_PROFILE_TEXT)],
+        [KeyboardButton(text=GET_PROFILE_TEXT)],
     ],
     resize_keyboard=True,
-    one_time_keyboard=True,
 )
 
 
@@ -29,15 +35,30 @@ class RegisterOverwriteInitSubstage(Stage):
         )
 
     @staticmethod
-    async def process(
+    async def process_overwrite(
         _: Message,
         state: FSMContext,
     ) -> None:
         await prepare_stage_and_state(OverwriteStartStage, state)
 
     @staticmethod
+    async def process_get_my_profile(
+        message: Message,
+        state: FSMContext,
+    ) -> None:
+        user: User = await get_user_by_telegram_id_2(
+            message.from_user.id, Stage.async_session)
+
+        await Profile.send_to_yourself(user)
+
+    @staticmethod
     def register(router: Router) -> None:
         router.message.register(
-            RegisterOverwriteInitSubstage.process,
-            F.text == OVERWRITE_PROFILE_TEXT,
+            RegisterOverwriteInitSubstage.process_overwrite,
+            Text(OVERWRITE_PROFILE_TEXT),
+        )
+
+        router.message.register(
+            RegisterOverwriteInitSubstage.process_get_my_profile,
+            Text(GET_PROFILE_TEXT),
         )

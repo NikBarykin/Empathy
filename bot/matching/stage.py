@@ -67,28 +67,20 @@ class MatchStage(Stage):
 
     @staticmethod
     async def process_found_partner(
-            user_telegram_id: int,
-            partner: User,
-            ) -> None:
+        user_telegram_id: int,
+        partner: User,
+        # state: FSMContext,
+    ) -> None:
 
         profile = Profile(partner)
 
-        await profile.send_to(
+        message: Message = await profile.send_to(
             user_telegram_id,
             reply_markup=get_inline_kb(
                 user_telegram_id, partner.id),
         )
 
-#         text = (f"{partner.name}, {partner.age}\n"
-#                 f"{partner.self_description}")
-
-#         message: Message = await Stage.bot.send_photo(
-#             user_telegram_id,
-#             partner.photo,
-#             caption=text,
-#             reply_markup=get_inline_kb(
-#                 user_telegram_id, partner.id),
-#         )
+        # await set_last_profile_id(state)
 
     @staticmethod
     async def get_next_match(
