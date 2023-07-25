@@ -36,6 +36,7 @@ async def get_user_by_telegram_id_2(
             result = await session.execute(stmt.limit(1))
     return result.scalars().one()
 
+
 # TODO: optimize
 async def get_user_by_telegram_id(
         telegram_id: int,
