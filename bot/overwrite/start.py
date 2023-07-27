@@ -14,6 +14,8 @@ from .preference import OverwritePreferenceStage
 
 from get_last_profile_id import get_last_profile_id
 
+from typing import Optional
+
 
 mapper = {
     OverwritePersonalStage.name: OverwritePersonalStage,
@@ -38,10 +40,12 @@ class OverwriteStartStage(Stage):
     async def prepare(
         state: FSMContext,
     ) -> None:
-        await Stage.bot.delete_message(
-            chat_id=await get_id(state),
-            message_id=await get_last_profile_id(state),
-        )
+        message_id: Optional[int] = await get_last_profile_id(state)
+        if message_id is not None:
+            await Stage.bot.delete_message(
+                chat_id=await get_id(state),
+                message_id=message_id,
+            )
 
         await Stage.bot.send_message(
             await get_id(state),
