@@ -1,4 +1,5 @@
 from stage import Stage
+from stage_order import next_stage
 from get_id import get_id
 
 from db.rating import Rating
@@ -20,6 +21,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from constants import LIKE_EMOJI, DISLIKE_EMOJI
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from get_last_profile_id import set_last_profile_id
 
 
 def get_already_rated_kb(
@@ -55,7 +58,7 @@ class MatchStage(Stage):
 
     @staticmethod
     async def prepare(state: FSMContext) -> None:
-        await MatchStage.get_next_match(await get_id(state))
+        await MatchStage.get_next_match(state, await get_id(state))
 
     @staticmethod
     async def process_no_partner_yet(
@@ -67,9 +70,9 @@ class MatchStage(Stage):
 
     @staticmethod
     async def process_found_partner(
+        state: FSMContext,
         user_telegram_id: int,
         partner: User,
-        # state: FSMContext,
     ) -> None:
 
         profile = Profile(partner)
@@ -80,12 +83,13 @@ class MatchStage(Stage):
                 user_telegram_id, partner.id),
         )
 
-        # await set_last_profile_id(state)
+        await set_last_profile_id(state, message.message_id)
 
     @staticmethod
     async def get_next_match(
+        state: FSMContext,
         user_telegram_id: int,
-        do_nothing_on_not_found: bool=False,
+        do_nothing_on_not_found: bool = False,
     ):
         partner = await find_match(user_telegram_id, Stage.async_session)
 
@@ -96,12 +100,13 @@ class MatchStage(Stage):
             if not do_nothing_on_not_found:
                 await MatchStage.process_no_partner_yet(user_telegram_id)
         else:
-            await MatchStage.process_found_partner(user_telegram_id, partner)
+            await MatchStage.process_found_partner(state, user_telegram_id, partner)
 
     @staticmethod
     async def process_callback_rated(
         callback: types.CallbackQuery,
         callback_data: RatingCallbackFactory,
+        state: FSMContext,
     ) -> None:
         async with Stage.async_session() as session:
             subj = await get_user_by_telegram_id(
@@ -131,21 +136,20 @@ class MatchStage(Stage):
 
                 reply_text = "🔥У вас взаимная симпатия с @{}🔥"
 
-                await Stage.bot.send_message(
-                        obj.id,
-                        text=reply_text.format(subj.telegram_handle),
-                        )
+                await Stage.bot.send_photo(
+                    obj.id,
+                    photo=subj.photo,
+                    caption=reply_text.format(subj.telegram_handle),
+                )
 
-                await Stage.bot.send_message(
-                        subj.id,
-                        text=reply_text.format(obj.telegram_handle),
-                        )
+                await Stage.bot.send_photo(
+                    subj.id,
+                    photo=obj.photo,
+                    caption=reply_text.format(obj.telegram_handle),
+                )
 
         await callback.answer()
-
-        await MatchStage.get_next_match(
-                user_telegram_id=callback_data.subj_telegram_id,
-                )
+        await MatchStage.prepare(state)
 
     @staticmethod
     async def process_callback_already_rated(

@@ -25,7 +25,7 @@ class RegisterStage(Stage):
     name: str = "register"
 
     @staticmethod
-    async def notify_waiting_pool_on_new_user(new_user: User) -> None:
+    async def notify_waiting_pool_on_new_user(state: FSMContext, new_user: User) -> None:
         stmt = (
             select(User)
             .where(User.in_waiting_pool==True)
@@ -40,6 +40,7 @@ class RegisterStage(Stage):
                 await session.commit()
 
                 await MatchStage.get_next_match(
+                    state,
                     user.id,
                     do_nothing_on_not_found=True,
                     # new_user,
@@ -58,7 +59,7 @@ class RegisterStage(Stage):
         await RegisterOverwriteInitSubstage.prepare(state)
 
         await next_stage(RegisterStage, state)
-        await RegisterStage.notify_waiting_pool_on_new_user(user)
+        await RegisterStage.notify_waiting_pool_on_new_user(state, user)
 
     @staticmethod
     def register(router: Router) -> None:
