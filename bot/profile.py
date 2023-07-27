@@ -5,7 +5,7 @@ from stage import Stage
 from dataclasses import dataclass
 
 from aiogram import Bot
-from aiogram.types import InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
@@ -27,8 +27,8 @@ class Profile:
         self.text = (f"{user.name}, {user.age}\n"
                      f"{user.self_description}")
 
-    async def send_to(self, user_id: int, reply_markup=None) -> None:
-        await Stage.bot.send_photo(
+    async def send_to(self, user_id: int, reply_markup=None) -> Message:
+        return await Stage.bot.send_photo(
             user_id,
             photo=self.photo_id,
             caption=self.text,
@@ -36,8 +36,8 @@ class Profile:
         )
 
     @staticmethod
-    async def send_to_yourself(user: User) -> None:
-        await Profile(user).send_to(
+    async def send_to_yourself(user: User) -> Message:
+        return await Profile(user).send_to(
             user.id,
             reply_markup=get_kb(),
         )

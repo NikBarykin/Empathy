@@ -1,7 +1,7 @@
 from stage import Stage
 
 from get_id import get_id
-from get_name import get_name
+from get_name import get_name_or_none
 
 from stage_order import next_stage
 
@@ -11,13 +11,19 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 
+from typing import Optional
 
-async def get_kb(state: FSMContext) -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=await get_name(state))]],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
+
+async def get_kb(state: FSMContext) -> Optional[ReplyKeyboardMarkup]:
+    name: Optional[str] = await get_name_or_none(state)
+    if name is None:
+        return None
+    else:
+        return ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text=name)]],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
 
 
 class NameStage(Stage):
@@ -57,15 +63,3 @@ class NameStage(Stage):
     @staticmethod
     async def process_invalid_value(message: types.Message):
         await message.reply("Некорректное значение имени")
-
-
-
-async def process_name(
-        message: Message,
-        state: FSMContext,
-        ):
-    await state.update_data(name=message.text)
-
-    # age
-    await message.answer("Сколько тебе лет?")
-    await state.set_state(UserState.age)

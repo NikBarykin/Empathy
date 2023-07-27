@@ -12,6 +12,8 @@ from aiogram.fsm.context import FSMContext
 from .personal import OverwritePersonalStage
 from .preference import OverwritePreferenceStage
 
+from get_last_profile_id import get_last_profile_id
+
 
 mapper = {
     OverwritePersonalStage.name: OverwritePersonalStage,
@@ -36,7 +38,11 @@ class OverwriteStartStage(Stage):
     async def prepare(
         state: FSMContext,
     ) -> None:
-        # TODO: delete prev message
+        await Stage.bot.delete_message(
+            chat_id=await get_id(state),
+            message_id=await get_last_profile_id(state),
+        )
+
         await Stage.bot.send_message(
             await get_id(state),
             "Какую информацию ты хочешь изменить?",

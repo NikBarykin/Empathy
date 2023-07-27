@@ -1,12 +1,16 @@
 from aiogram.fsm.context import FSMContext
 
 
-name_key = "name_key"
+__key = "__key"
 
 
 async def set_name(state: FSMContext, name: str) -> None:
-    await state.update_data(**{name_key: name})
+    await state.update_data(**{__key: name})
 
 
-async def get_name(state: FSMContext) -> None:
-    return (await state.get_data())[name_key]
+async def get_name(state: FSMContext) -> str:
+    return (await state.get_data())[__key]
+
+
+async def get_name_or_none(state: FSMContext) -> str:
+    return (await state.get_data()).get(__key)
