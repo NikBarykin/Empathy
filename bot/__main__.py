@@ -90,7 +90,7 @@ async def bot_start(logger: logging.Logger) -> None:
         preference_stages=[
             MinPreferredAgeStage,
             MaxPreferredAgeStage,
-            PreferredInterestsStage,
+            # PreferredInterestsStage,
         ],
         register_stage=RegisterStage,
         match_stage=MatchStage,

@@ -12,7 +12,7 @@ from aiogram.fsm.context import FSMContext
 from .personal import OverwritePersonalStage
 from .preference import OverwritePreferenceStage
 
-from get_last_profile_id import get_last_profile_id
+from get_last_profile_id import delete_last_profile
 
 from typing import Optional
 
@@ -40,12 +40,8 @@ class OverwriteStartStage(Stage):
     async def prepare(
         state: FSMContext,
     ) -> None:
-        message_id: Optional[int] = await get_last_profile_id(state)
-        if message_id is not None:
-            await Stage.bot.delete_message(
-                chat_id=await get_id(state),
-                message_id=message_id,
-            )
+        await delete_last_profile(
+            bot=Stage.bot, state=state)
 
         await Stage.bot.send_message(
             await get_id(state),

@@ -14,6 +14,7 @@ from constants import NO_INTERESTS, NO_INTEREST_PAGES
 from typing import Set, Type, Dict, Iterable
 
 from stage_order import next_stage
+from dummy_callback_factory import DummyCallbackFactory
 
 
 class BaseStage(Stage):
@@ -53,38 +54,38 @@ class BaseStage(Stage):
 
         builder.adjust(2)
 
-        if interest_page_i == 0:
-            left_arrow_button = InlineKeyboardButton(
-                text="✖️",
-                callback_data="pass",
-            )
-        else:
-            left_arrow_button = InlineKeyboardButton(
-                text="⬅️",
-                callback_data=f"gopage_{interest_page_i - 1}",
-            )
+        # if interest_page_i == 0:
+        #     left_arrow_button = InlineKeyboardButton(
+        #         text="✖️",
+        #         callback_data=DummyCallbackFactory(),
+        #     )
+        # else:
+        #     left_arrow_button = InlineKeyboardButton(
+        #         text="⬅️",
+        #         callback_data=f"gopage_{interest_page_i - 1}",
+        #     )
 
-        page_index_button = InlineKeyboardButton(
-            text=f"{interest_page_i + 1}/{NO_INTEREST_PAGES}",
-            callback_data="pass",
-        )
+        # page_index_button = InlineKeyboardButton(
+        #     text=f"{interest_page_i + 1}/{NO_INTEREST_PAGES}",
+        #     callback_data=DummyCallbackFactory(),
+        # )
 
-        if interest_page_i + 1 == NO_INTEREST_PAGES:
-            right_arrow_button = InlineKeyboardButton(
-                text="✖️",
-                callback_data="pass",
-            )
-        else:
-            right_arrow_button = InlineKeyboardButton(
-                text="➡",
-                callback_data=f"gopage_{interest_page_i + 1}",
-            )
+        # if interest_page_i + 1 == NO_INTEREST_PAGES:
+        #     right_arrow_button = InlineKeyboardButton(
+        #         text="✖️",
+        #         callback_data="pass",
+        #     )
+        # else:
+        #     right_arrow_button = InlineKeyboardButton(
+        #         text="➡",
+        #         callback_data=f"gopage_{interest_page_i + 1}",
+        #     )
 
-        builder.row(
-            left_arrow_button,
-            page_index_button,
-            right_arrow_button,
-        )
+        # builder.row(
+        #     left_arrow_button,
+        #     page_index_button,
+        #     right_arrow_button,
+        # )
 
         # "submit" button
         builder.row(
