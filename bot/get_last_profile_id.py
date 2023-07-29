@@ -1,6 +1,9 @@
 from get_id import get_id
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest
+from contextlib import suppress
+
 from typing import Optional
 
 
@@ -20,9 +23,10 @@ async def delete_last_profile(bot: Bot, state: FSMContext) -> None:
     if last_profile_id is None:
         return
 
-    await bot.delete_message(
-        chat_id=await get_id(state),
-        message_id=last_profile_id,
-    )
+    with suppress(TelegramBadRequest):
+        await bot.delete_message(
+            chat_id=await get_id(state),
+            message_id=last_profile_id,
+        )
 
-    await set_last_profile_id(state, None)
+        await set_last_profile_id(state, None)
