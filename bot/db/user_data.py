@@ -1,6 +1,6 @@
 from .config import SELF_DESCRIPTION_MAX_LEN
 from .base import Base, CleanModel
-from typing import Set, List, Dict, Any
+from typing import Set, List, Dict, Any, Optional
 
 from sqlalchemy import String, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
@@ -38,7 +38,7 @@ class UserData(Base, CleanModel):
     # TODO: exact types
     min_preferred_age: Mapped[int]
     max_preferred_age: Mapped[int]
-    preferred_partner_interests: Mapped[Set[str]] = mapped_column(ARRAY(String(32)))
+    preferred_partner_interests: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String(32)))
 
     # waiting for new users to register
     in_waiting_pool: Mapped[bool] = mapped_column(default=False)

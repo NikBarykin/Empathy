@@ -37,13 +37,13 @@ fields_and_stages = {
     "sex": SexStage,
     "city": CityStage,
     "relationship_goal": RelationshipGoalStage,
-    "interests": PreferredInterestsStage,
+    "interests": PersonalInterestsStage,
     "photo": PhotoStage,
     "self_description": SelfDescriptionStage,
     # preference
     "min_preferred_age": MinPreferredAgeStage,
     "max_preferred_age": MaxPreferredAgeStage,
-    "preferred_partner_interests": PreferredInterestsStage,
+    # "preferred_partner_interests": PreferredInterestsStage,
 }
 
 forward_data_keys_mapping = {
@@ -56,7 +56,6 @@ forward_data_keys_mapping = {
 class User(UserData):
     __tablename__ = "user_data"
     __mapper_args__ = {"polymorphic_identity": "user"}
-
 
     @staticmethod
     def from_fsm_data(data: Dict[str, Any]) -> User:
@@ -90,7 +89,7 @@ class User(UserData):
     #         "self_description",
     #         "min_preferred_age",
     #         "max_preferred_age",
-    #         "preferred_partner_interests",
+    #         "preferred_partner_interests,
     #     )
 
     #     return User(**{arg_name: fsm_state_data[arg_name] for arg_name in argument_names})
@@ -123,7 +122,7 @@ class User(UserData):
     @hybrid_method
     def __get_number_of_interests_matching_with_preferences_of(
         self, subject: User) -> int:
-        return len(set(self.interests) & set(subject.preferred_partner_interests))
+        return len(set(self.interests) & set(subject.interests))
 
     # TODO: mark 'inline'
     @__get_number_of_interests_matching_with_preferences_of.expression
@@ -135,8 +134,8 @@ class User(UserData):
             select(func.count())
             .select_from(interests_view)
             .where(
-                interests_view.column.in_(subject.preferred_partner_interests)
-                # subject.preferred_partner_interests.contains(interests_view)
+                interests_view.column.in_(subject.interests)
+                # subject.interests.contains(interests_view)
             )
             .label("same_interests_count")
         )
