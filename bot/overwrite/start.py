@@ -14,6 +14,8 @@ from .preference import OverwritePreferenceStage
 
 from get_last_profile_id import delete_last_profile
 
+from typing import Optional
+
 
 mapper = {
     OverwritePersonalStage.name: OverwritePersonalStage,
