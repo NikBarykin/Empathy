@@ -38,7 +38,7 @@ class UserData(Base, CleanModel):
     # TODO: exact types
     min_preferred_age: Mapped[int]
     max_preferred_age: Mapped[int]
-    preferred_partner_interests: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String(32)))
+    preferred_partner_interests: Mapped[Optional[List[str]]] = mapped_column(ARRAY(String(32)), nullable=True)
 
     # waiting for new users to register
     in_waiting_pool: Mapped[bool] = mapped_column(default=False)
