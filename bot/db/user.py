@@ -6,6 +6,7 @@ from constants import NEUTRAL_REL_GOAL, NO_INTERESTS
 from sqlalchemy import SQLColumnExpression, case, func, select, or_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy.exc import IntegrityError
 
 from aiogram.fsm.context import FSMContext
 
@@ -37,7 +38,7 @@ fields_and_stages = {
     "sex": SexStage,
     "city": CityStage,
     "relationship_goal": RelationshipGoalStage,
-    "interests": PersonalInterestsStage,
+    # "interests": PersonalInterestsStage,
     "photo": PhotoStage,
     "self_description": SelfDescriptionStage,
     # preference
@@ -61,7 +62,10 @@ class User(UserData):
     def from_fsm_data(data: Dict[str, Any]) -> User:
         return User(
             **{field: data[data_key]
-               for field, data_key in forward_data_keys_mapping.items()})
+               for field, data_key in forward_data_keys_mapping.items()},
+            interests=(data.get(PersonalInterestsStage.name) or data.get(PreferredInterestsStage.name)),
+            preferred_partner_interests=['empty'],
+        )
 
     def as_dict(self) -> Dict[str, Any]:
         return {
@@ -197,7 +201,9 @@ class User(UserData):
         self,
         async_session: async_sessionmaker[AsyncSession],
     ) -> None:
+        logging.info(f"value of preferred_interests of user {self.telegram_handle} = {self.preferred_partner_interests}")
         async with async_session() as session:
+            gt
             async with session.begin():
                 await session.merge(self)
 
