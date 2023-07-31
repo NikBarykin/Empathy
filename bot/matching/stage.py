@@ -24,7 +24,8 @@ from constants import LIKE_EMOJI, DISLIKE_EMOJI
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from get_last_profile_id import set_last_profile_id
-
+from contextlib import suppress
+from sqlalchemy.exc import IntegrityError
 
 def get_already_rated_kb(
         liked: bool
@@ -41,16 +42,18 @@ async def insert_rating(
         liked: bool,
         subj: User,
         obj: User,
-        session: AsyncSession,
+        async_session,
         ) -> None:
-    async with session.begin():
-        await session.merge(
-                Rating(
-                    liked,
-                    subj,
-                    obj,
-                    )
-                )
+        with suppress(IntegrityError):
+            async with async_session() as session:
+                async with session.begin():
+                    await session.merge(
+                            Rating(
+                                liked,
+                                subj,
+                                obj,
+                                )
+                            )
 
 
 class MatchStage(Stage):
@@ -111,45 +114,51 @@ class MatchStage(Stage):
         callback_data: RatingCallbackFactory,
         state: FSMContext,
     ) -> None:
+        subj = None
         async with Stage.async_session() as session:
             subj = await get_user_by_telegram_id(
                     callback_data.subj_telegram_id,
                     session)
 
+        obj = None
+        async with Stage.async_session() as session:
             obj = await get_user_by_telegram_id(
                     callback_data.obj_telegram_id,
                     session)
 
-            liked: bool = callback_data.liked
+        liked: bool = callback_data.liked
 
-            await insert_rating(
-                    liked,
-                    subj,
-                    obj,
-                    session,
-                    )
+        await insert_rating(
+                liked,
+                subj,
+                obj,
+                Stage.async_session,
+                )
 
-            await callback.message.edit_reply_markup(
-                    reply_markup=get_already_rated_kb(liked),
-                    )
+        await callback.message.edit_reply_markup(
+                reply_markup=get_already_rated_kb(liked),
+                )
 
-            # check for mutual sympathy
+        # check for mutual sympathy
+
+        async with Stage.async_session() as session:
             liked_back: bool = await check_liked(obj, subj, session)
-            if liked and liked_back:
 
-                reply_text = "🔥У вас взаимная симпатия с @{}🔥"
+        if liked and liked_back:
 
-                await Stage.bot.send_photo(
-                    obj.id,
-                    photo=subj.photo,
-                    caption=reply_text.format(subj.telegram_handle),
-                )
+            reply_text = "🔥У вас взаимная симпатия с @{}🔥"
 
-                await Stage.bot.send_photo(
-                    subj.id,
-                    photo=obj.photo,
-                    caption=reply_text.format(obj.telegram_handle),
-                )
+            await Stage.bot.send_photo(
+                obj.id,
+                photo=subj.photo,
+                caption=reply_text.format(subj.telegram_handle),
+            )
+
+            await Stage.bot.send_photo(
+                subj.id,
+                photo=obj.photo,
+                caption=reply_text.format(obj.telegram_handle),
+            )
 
         await callback.answer()
         await MatchStage.prepare(state)

@@ -216,10 +216,6 @@ class User(UserData):
             async with session.begin():
                 await session.merge(self)
 
-        # async with async_session() as session:
-        #     async with session.begin():
-        #         await session.merge(self)
-
         async with async_session() as session:
             stmt = select(User).where(User.id==self.id)
             found_user = (await session.execute(stmt)).scalars().one()
