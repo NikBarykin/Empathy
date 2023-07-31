@@ -57,6 +57,12 @@ class StartStage(Stage):
         message: Message,
         state: FSMContext,
     ) -> None:
+        # User doesn't have a username
+        if message.from_user.username is None:
+            await message.answer(
+                text="Ошибка: у тебя нет имени пользователя в telegram")
+            return
+
         user: Optional[User] = await StartStage.get_user(message.from_user.id)
         if user is None:
             await state.update_data(**{
