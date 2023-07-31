@@ -1,4 +1,5 @@
 import logging
+from get_id import get_id
 from stage_mapper import personal_mapper, preference_mapper
 from stage import StageType, Stage
 from accomplishment_manager import AccomplishmentManager
@@ -23,8 +24,9 @@ async def prepare_stage_and_state(
     stage: StageType,
     state: FSMContext,
 ) -> None:
-    await stage.prepare(state)
+    # order matters: in prepare we can call 'next_stage' again
     await state.set_state(stage.state)
+    await stage.prepare(state)
 
 
 async def next_stage(
@@ -35,7 +37,7 @@ async def next_stage(
     await AccomplishmentManager.mark_completed(stage, state)
     target_stage: StageType = await __get_first_not_completed(state)
     await prepare_stage_and_state(target_stage, state)
-    logging.info(f"current state is {target_stage.state}")
+    logging.info(f"current state for user {await get_id(state)} is {target_stage.state}")
 
 
 async def skip_form(state: FSMContext) -> None:
