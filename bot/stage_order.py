@@ -23,8 +23,8 @@ async def prepare_stage_and_state(
     stage: StageType,
     state: FSMContext,
 ) -> None:
-    await state.set_state(stage.state)
     await stage.prepare(state)
+    await state.set_state(stage.state)
 
 
 async def next_stage(
