@@ -60,18 +60,27 @@ class User(UserData):
 
     @staticmethod
     def from_fsm_data(data: Dict[str, Any]) -> User:
+        logging.info(f"user's data: {dict(data)}")
+        logging.info(f"got interests and preferred_interest from data: {data.get(PersonalInterestsStage.name)}, {data.get(PreferredInterestsStage.name)}")
+        interests = data.get(PersonalInterestsStage.name)
+        if interests is None or len(interests) == 0:
+            interests = data.get(PreferredInterestsStage.name)
+
         return User(
             **{field: data[data_key]
                for field, data_key in forward_data_keys_mapping.items()},
-            interests=(data.get(PersonalInterestsStage.name) or data.get(PreferredInterestsStage.name)),
+            interests=interests,
             preferred_partner_interests=['empty'],
         )
 
     def as_dict(self) -> Dict[str, Any]:
         return {
+                **{
             data_key: getattr(self, field)
             for field, data_key in forward_data_keys_mapping.items()
-        }
+            }, PersonalInterestsStage.name: self.interests,
+                }
+
 
     # @staticmethod
     # def from_fsm_state(state: FSMContext) -> User:
@@ -202,8 +211,8 @@ class User(UserData):
         async_session: async_sessionmaker[AsyncSession],
     ) -> None:
         logging.info(f"value of preferred_interests of user {self.telegram_handle} = {self.preferred_partner_interests}")
+        logging.info(f"value of interests of user {self.telegram_handle} = {self.interests}")
         async with async_session() as session:
-            gt
             async with session.begin():
                 await session.merge(self)
 
