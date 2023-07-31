@@ -1,6 +1,7 @@
 from stage import Stage
 from stage_order import next_stage
 from get_id import get_id
+import logging
 
 from db.rating import Rating
 from db.user import User
@@ -43,7 +44,7 @@ async def insert_rating(
         session: AsyncSession,
         ) -> None:
     async with session.begin():
-        session.add(
+        await session.merge(
                 Rating(
                     liked,
                     subj,
@@ -76,6 +77,8 @@ class MatchStage(Stage):
     ) -> None:
 
         profile = Profile(partner)
+
+        logging.debug(f"Found a partner {partner} for {user_telegram_id}, sending its profile")
 
         message: Message = await profile.send_to(
             user_telegram_id,
