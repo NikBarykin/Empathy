@@ -5,7 +5,7 @@ import logging
 
 from db.rating import Rating
 from db.user import User
-from db.match import check_liked, find_match, get_user_by_telegram_id
+from db.match import check_liked, find_match, get_user_by_telegram_id, get_user_by_telegram_id_2
 
 from profile import Profile
 
@@ -78,6 +78,10 @@ class MatchStage(Stage):
         user_telegram_id: int,
         partner: User,
     ) -> None:
+        user: User = await get_user_by_telegram_id_2(
+            user_telegram_id, Stage.async_session)
+
+        await user.remove_from_waiting_pool(Stage.async_session)
 
         profile = Profile(partner)
 

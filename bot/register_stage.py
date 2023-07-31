@@ -29,22 +29,25 @@ class RegisterStage(Stage):
         stmt = (
             select(User)
             .where(User.in_waiting_pool==True)
+            .where(User.id!=new_user.id)
             # .where(new_user.is_eligible_candidate_for(User))
         )
 
         async with Stage.async_session() as session:
-            for user in (await session.scalars(stmt)).all():
-                logging.info(f"User {new_user.telegram_handle} registered and {user.telegram_handle} was notified about it")
+            users = (await session.scalars(stmt)).all()
+        for user in users:
+            logging.info(f"User {new_user.telegram_handle} registered and {user.telegram_handle} was notified about it")
 
-                user.in_waiting_pool = False
-                await session.commit()
+            assert user.id != new_user.id
 
-                await MatchStage.get_next_match(
-                    state,
-                    user.id,
-                    do_nothing_on_not_found=True,
-                    # new_user,
-                )
+            user.remove_from_waiting_pool(Stage.async_session)
+
+            await MatchStage.get_next_match(
+                state,
+                user.id,
+                do_nothing_on_not_found=True,
+                # new_user,
+            )
 
     @staticmethod
     async def create_and_insert_user(state: FSMContext) -> None:

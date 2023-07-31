@@ -242,3 +242,12 @@ class User(UserData):
             logging.debug(f"{user.name} was put in a waiting pool")
             async with session.begin():
                 user.in_waiting_pool = True
+
+    async def remove_from_waiting_pool(
+        self,
+        async_session: async_sessionmaker[AsyncSession],
+    ) -> None:
+        async with async_session() as session:
+            logging.debug(f"{self.name} was put out of waiting-pool")
+            async with session.begin():
+                self.in_waiting_pool = False
