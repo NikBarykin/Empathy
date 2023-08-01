@@ -63,7 +63,8 @@ class StartStage(Stage):
                 text="Ошибка: у тебя нет имени пользователя в telegram")
             return
 
-        user: Optional[User] = await StartStage.get_user(message.from_user.id)
+        # user: Optional[User] = await StartStage.get_user(message.from_user.id)
+        user = None
         if user is None:
             await state.update_data(**{
                 StartStage.id_key: message.from_user.id,

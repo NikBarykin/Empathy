@@ -52,6 +52,20 @@ class RegisterOverwriteInitSubstage(Stage):
         await Profile.send_to_yourself(user)
 
     @staticmethod
+    async def process_delete_my_profile(
+        message: Message,
+        state: FSMContext,
+    ) -> None:
+        # user: User = await get_user_by_telegram_id_2(
+        #     message.from_user.id, Stage.async_session)
+
+        # async with Stage.async_session() as session:
+        #     async with session.begin():
+        #         await session.delete(user)
+
+        await state.clear()
+
+    @staticmethod
     def register(router: Router) -> None:
         router.message.register(
             RegisterOverwriteInitSubstage.process_overwrite,
@@ -61,4 +75,9 @@ class RegisterOverwriteInitSubstage(Stage):
         router.message.register(
             RegisterOverwriteInitSubstage.process_get_my_profile,
             Text(GET_PROFILE_TEXT),
+        )
+
+        router.message.register(
+            RegisterOverwriteInitSubstage.process_delete_my_profile,
+            Text("delete_my_profile_secret_text_83458938459"),
         )
