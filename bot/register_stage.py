@@ -40,7 +40,7 @@ class RegisterStage(Stage):
 
             assert user.id != new_user.id
 
-            user.remove_from_waiting_pool(Stage.async_session)
+            await user.remove_from_waiting_pool(Stage.async_session)
 
             await MatchStage.get_next_match(
                 state,
