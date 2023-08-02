@@ -243,11 +243,13 @@ class User(UserData):
             async with session.begin():
                 user.in_waiting_pool = True
 
+    @staticmethod
     async def remove_from_waiting_pool(
-        self,
+        telegram_id: int,
         async_session: async_sessionmaker[AsyncSession],
     ) -> None:
         async with async_session() as session:
-            logging.debug(f"{self.name} was put out of waiting-pool")
+            user: User = await User.get_by_telegram_id(telegram_id, session)
+            logging.debug(f"{user.name} was removed from waiting pool")
             async with session.begin():
-                self.in_waiting_pool = False
+                user.in_waiting_pool = False

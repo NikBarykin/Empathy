@@ -81,7 +81,8 @@ class MatchStage(Stage):
         user: User = await get_user_by_telegram_id_2(
             user_telegram_id, Stage.async_session)
 
-        await user.remove_from_waiting_pool(Stage.async_session)
+        await User.remove_from_waiting_pool(
+                telegram_id=user_telegram_id, async_session=Stage.async_session)
 
         profile = Profile(partner)
 
