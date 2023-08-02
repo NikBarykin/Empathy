@@ -168,11 +168,29 @@ class User(UserData):
         return func.pow(50, cls.__get_number_of_interests_matching_with_preferences_of_scaled(subject))
 
     @hybrid_method
+    def __get_city_score_as_partner_of(self, subject: User) -> float:
+        return (0 if self.city == subject.city
+                else -100)
+
+    @__get_city_score_as_partner_of.expression
+    @classmethod
+    def __get_city_score_as_partner_of(
+        cls,
+        subject: User,
+    ) -> SQLColumnExpression[float]:
+        return case(
+            (cls.city == subject.city, 0),
+            else_=-100
+        )
+
+    @hybrid_method
     def get_partner_score(self, subject: User) -> float:
         return (
             self.__get_interests_score_as_partner_of(subject)
             +
             self.__get_relationship_goal_score_as_partner_of(subject)
+            +
+            self.__get_city_score_as_partner_of(subject)
         )
 
     @hybrid_method
