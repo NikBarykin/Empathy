@@ -30,7 +30,7 @@ async def get_kb(state: FSMContext) -> ReplyKeyboardMarkup:
 
 PhotoStageBase = produce_simple_get_stage(
     stage_name="фотография",
-    question_text="Добавь фотографию",
+    question_text="Добавь фотографию (ВНИМАНИЕ, это должна быть твоя реальная фотография, нарушившие данное правило будут заблокированы)",
     data_update_value_getter=lambda message: message.photo[0].file_id,
     message_filter=F.photo,
     invalid_value_text="Добавь фотографию (не файлом)",
