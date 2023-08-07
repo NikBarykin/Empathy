@@ -15,8 +15,6 @@ from get_name import set_name
 # import registration_end
 # from db.user import User
 
-router = Router()
-
 # async def user_already_in_database(
 #         telegram_id: int,
 #         async_session: async_sessionmaker[AsyncSession],
@@ -60,23 +58,27 @@ class StartStage(Stage):
         # User doesn't have a username
         if message.from_user.username is None:
             await message.answer(
-                text="Ошибка: у тебя нет имени пользователя в telegram")
+                "Ошибка: у тебя не настроенно имя пользователя в telegram")
             return
 
-        # user: Optional[User] = await StartStage.get_user(message.from_user.id)
-        user = None
-        if user is None:
-            await state.update_data(**{
-                StartStage.id_key: message.from_user.id,
-                StartStage.handle_key: message.from_user.username,
-            })
-            await set_name(state, message.from_user.first_name)
-        else:
-            await state.set_data(user.as_dict())
-            await skip_form(state)
+        new_user = User(
+            id=message.from_user.id,
+            telegram_handle=message.from_user.username,
+        )
 
-        await next_stage(StartStage, state)
+        async with Stage.async_session() as session:
+            async with session.begin():
+                session.add(new_user)
 
+        await state.set_data(
+            id=new_user.id,
+            name=message.from_user.first_name,
+        )
+
+        Stage.logger.info(
+            "StartStage - registered %s", new_user.simple_str())
+
+        await StartStage.next_stage.prepare(state)
 
 
 

@@ -1,7 +1,7 @@
 from aiogram.fsm.context import FSMContext
 
 
-__key = "__key"
+__key = "name"
 
 
 async def set_name(state: FSMContext, name: str) -> None:
