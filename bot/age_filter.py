@@ -9,5 +9,5 @@ class AgeFilter(BaseFilter):
             and
             message.text.isnumeric()
             and
-            18 <= int(message.text) <= 99
+            16 <= int(message.text) <= 99
         )
