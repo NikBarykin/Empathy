@@ -50,7 +50,7 @@ async def main() -> None:
             name=random.choice(names),
             age=age,
             sex=sex,
-            city=random.choice(CITIES),
+            city='москва',
             relationship_goal=random.choice(RELATIONSHIP_GOALS),
             interests=interests,
             photo=random.choice(photos),
