@@ -26,6 +26,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from get_last_profile_id import set_last_profile_id
 from contextlib import suppress
 from sqlalchemy.exc import IntegrityError
+from aiogram.exceptions import TelegramBadRequest
+
 
 def get_already_rated_kb(
         liked: bool
@@ -88,13 +90,34 @@ class MatchStage(Stage):
 
         logging.debug(f"Found a partner {partner} for {user_telegram_id}, sending its profile")
 
-        message: Message = await profile.send_to(
-            user_telegram_id,
-            reply_markup=get_inline_kb(
-                user_telegram_id, partner.id),
-        )
+        try:
+            message: Message = await profile.send_to(
+                user_telegram_id,
+                reply_markup=get_inline_kb(
+                    user_telegram_id, partner.id),
+            )
 
-        await set_last_profile_id(state, message.message_id)
+            await set_last_profile_id(state, message.message_id)
+        except TelegramBadRequest:
+            subj = None
+            async with Stage.async_session() as session:
+                subj = await get_user_by_telegram_id(
+                        user_telegram_id,
+                        session)
+
+            obj = None
+            async with Stage.async_session() as session:
+                obj = await get_user_by_telegram_id(
+                        partner.id,
+                        session)
+
+            await insert_rating(
+                    False,
+                    subj,
+                    obj,
+                    Stage.async_session,
+                    )
+            await MatchStage.prepare(state)
 
     @staticmethod
     async def get_next_match(
