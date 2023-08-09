@@ -206,6 +206,6 @@ class MatchStage(Stage):
 
         router.callback_query.register(
             MatchStage.process_callback_already_rated,
-            F.text=="already_rated",
+            F.data=="already_rated",
             MatchStage.state,
         )

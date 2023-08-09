@@ -218,18 +218,18 @@ class BaseStage(Stage):
     ) -> None:
         router.callback_query.register(
             stage.process_callback_check_interest,
-            F.text.startswith("interest_"),
+            F.data.startswith("interest_"),
             stage.state,
         )
 
         router.callback_query.register(
             stage.process_callback_go_page,
-            F.text.startswith("gopage_"),
+            F.data.startswith("gopage_"),
             stage.state,
         )
 
         router.callback_query.register(
             stage.process_callback_submit,
-            F.text=="submit_interests",
+            F.data=="submit_interests",
             stage.state,
         )
