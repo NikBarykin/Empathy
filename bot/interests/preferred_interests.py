@@ -1,12 +1,11 @@
 from .base import BaseStage
 from .personal_interests import PersonalInterestsStage
 
-from aiogram import Router, types
+from aiogram import Router, types, F
 from aiogram.types import InlineKeyboardButton
 from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.filters import Text
 
 
 class PreferredInterestsStage(BaseStage):
@@ -74,6 +73,6 @@ class PreferredInterestsStage(BaseStage):
 
         router.callback_query.register(
             PreferredInterestsStage.process_callback_submit_same,
-            Text("submit_interests_same"),
+            F.text=="submit_interests_same",
             PreferredInterestsStage.state,
         )

@@ -6,7 +6,6 @@ from overwrite.start import OverwriteStartStage
 from aiogram import Router, F
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Text
 
 from db.match import get_user_by_telegram_id_2
 from db.user import User
@@ -56,8 +55,7 @@ class RegisterOverwriteInitSubstage(Stage):
         message: Message,
         state: FSMContext,
     ) -> None:
-        # user: User = await get_user_by_telegram_id_2(
-        #     message.from_user.id, Stage.async_session)
+        # user: User = await get_user_by_telegram_id_2( #     message.from_user.id, Stage.async_session)
 
         # async with Stage.async_session() as session:
         #     async with session.begin():
@@ -69,15 +67,15 @@ class RegisterOverwriteInitSubstage(Stage):
     def register(router: Router) -> None:
         router.message.register(
             RegisterOverwriteInitSubstage.process_overwrite,
-            Text(OVERWRITE_PROFILE_TEXT),
+            F.text==OVERWRITE_PROFILE_TEXT,
         )
 
         router.message.register(
             RegisterOverwriteInitSubstage.process_get_my_profile,
-            Text(GET_PROFILE_TEXT),
+            F.text==GET_PROFILE_TEXT,
         )
 
         router.message.register(
             RegisterOverwriteInitSubstage.process_delete_my_profile,
-            Text("delete_my_profile_secret_text_83458938459"),
+            F.text=="delete_my_profile_secret_text_83458938459",
         )

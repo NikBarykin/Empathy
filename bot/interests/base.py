@@ -4,9 +4,8 @@ from get_id import get_id
 from stage import Stage, StageType
 from constants import INTEREST_PAGES, CHECK_MARK_EMOJI
 
-from aiogram import types, Router
+from aiogram import types, Router, F
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters import Text
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from constants import NO_INTERESTS, NO_INTEREST_PAGES
@@ -219,18 +218,18 @@ class BaseStage(Stage):
     ) -> None:
         router.callback_query.register(
             stage.process_callback_check_interest,
-            Text(startswith="interest_"),
+            F.text.startswith("interest_"),
             stage.state,
         )
 
         router.callback_query.register(
             stage.process_callback_go_page,
-            Text(startswith="gopage_"),
+            F.text.startswith("gopage_"),
             stage.state,
         )
 
         router.callback_query.register(
             stage.process_callback_submit,
-            Text("submit_interests"),
+            F.text=="submit_interests",
             stage.state,
         )

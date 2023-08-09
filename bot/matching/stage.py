@@ -12,11 +12,10 @@ from profile import Profile
 from matching.keyboards import get_inline_kb
 from matching.rating_callback_factory import RatingCallbackFactory
 
-from aiogram import Router, types
+from aiogram import Router, types, F
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Text
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from constants import LIKE_EMOJI, DISLIKE_EMOJI
@@ -207,6 +206,6 @@ class MatchStage(Stage):
 
         router.callback_query.register(
             MatchStage.process_callback_already_rated,
-            Text("already_rated"),
+            F.text=="already_rated",
             MatchStage.state,
         )

@@ -6,7 +6,6 @@ from get_id import get_id
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardMarkup
-from aiogram.filters import Text
 
 
 ADD_PROFILE_PHOTO_TEXT = "Добавить фотографию из профиля"
@@ -60,7 +59,7 @@ class PhotoStage(PhotoStageBase):
         # order matters
         router.message.register(
             PhotoStage.process_profile_photo,
-            Text(ADD_PROFILE_PHOTO_TEXT),
+            F.text==ADD_PROFILE_PHOTO_TEXT,
             PhotoStage.state,
         )
         PhotoStageBase.register(router)

@@ -4,7 +4,6 @@ import sys
 from stages_initialization import init_stages
 
 from aiogram import Bot, Dispatcher, F, types, Router
-from aiogram.filters import Text
 from aiogram.fsm.state import State, StatesGroup, any_state
 from aiogram.fsm.storage.redis import RedisStorage
 from sqlalchemy.engine import URL
@@ -49,9 +48,6 @@ from aioredis import Redis
 
 from dummy_callback_factory import register_dummy_process_callback
 from notify_everyone_on_start import notify_everyone_on_start
-
-
-
 
 
 def configure_logging() -> None:
