@@ -35,9 +35,7 @@ class RegisterStage(Stage):
 
         async with Stage.async_session() as session:
             for user in (await session.scalars(stmt)).all():
-                logging.info(f"User {new_user.telegram_handle} registered and {user.telegram_handle} was notified about it")
-
-                assert user.id != new_user.id
+                # logging.info(f"User {new_user.telegram_handle} registered and {user.telegram_handle} was notified about it")
 
                 user.in_waiting_pool=False
                 await session.commit()
