@@ -1,6 +1,6 @@
 from typing import Type
 from sqlalchemy import SQLColumnExpression
-from db.user import User
+from database.user import User
 
 
 def sex_expr(

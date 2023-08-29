@@ -1,7 +1,7 @@
 """Managing keyboards"""
-from stages.stage import Stage
+from stage import Stage
 
-from aiogram.types import ReplyKeyboardMarkup
+from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 
 def concat_reply_keyboards(
@@ -22,4 +22,11 @@ def concat_reply_keyboards(
 async def send_reply_kb(chat_id: int, kb: ReplyKeyboardMarkup):
     message = await Stage.bot.send_message(
         chat_id=chat_id, text="⚡️", reply_markup=kb)
-    # await Stage.bot.delete_message(chat_id=chat_id, message_id=message.message_id)
+    return message
+
+
+async def remove_reply_keyboard(chat_id: int):
+    message = await Stage.bot.send_message(
+        chat_id=chat_id, text=".", reply_markup=ReplyKeyboardRemove())
+    await Stage.bot.delete_message(
+        chat_id=chat_id, message_id=message.message_id)

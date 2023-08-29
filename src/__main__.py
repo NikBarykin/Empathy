@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher, F, types, Router
 from aiogram.types import BotCommand
 from aiogram.fsm.state import State, StatesGroup, any_state
 from aiogram.fsm.storage.redis import RedisStorage
+
 from sqlalchemy.engine import URL
 # sqlalchemy
 # asyncio
@@ -14,22 +15,23 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from aioredis import Redis
 
 # Stages
-from stages.stage import Stage
+from stage import Stage
 
-# TODO: move these imports to stages.regular_workflow.config.imports
-from stages.regular_workflow.config.declarations import all_stages
-from stages.regular_workflow.config import order
-from stages.regular_workflow.config.registration import register_stages as register_regular_stages
+# TODO: move these imports to user_stages.config.imports
 
-from stages.regular_workflow.profile import ProfileStage
+from user_stages.config import configure
+from user_stages.config.registration import register_user_stages
+
+from user_stages.profile import ProfileStage
 
 # import stages.moderation.config
 from utils.dummy import register_dummy_process_callback
 
-from config import DATABASE_URL, TOKEN
+from bot_config import TOKEN
 
-from db.base import Base
-from db.engine import (
+from database.config import DATABASE_URL
+from database.base import Base
+from database.engine import (
     construct_async_engine,
     get_async_sessionmaker,
     proceed_schemas,
@@ -55,7 +57,7 @@ async def main() -> None:
     dp = Dispatcher(storage=RedisStorage(redis=redis))
 
     # register stages for regular workflow
-    register_regular_stages(dp)
+    register_user_stages(dp)
 
     # register dummy-callback
     register_dummy_process_callback(dp)

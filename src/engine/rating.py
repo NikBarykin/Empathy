@@ -1,18 +1,18 @@
 """Every helpful function about Rating-model"""
 import logging
-from stages.stage import Stage
-from db.rating import Rating
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from stage import Stage
+from database.rating import Rating
 
 
 async def check_liked(actor_id: int, target_id: int) -> bool:
     """Check if 'actor' liked 'target'"""
     stmt = (
         select(Rating)
-        .where(liked=True)
-        .where(actor_id=actor_id)
-        .where(target_id=target_id)
+        .where(Rating.liked==True)
+        .where(Rating.actor_id==actor_id)
+        .where(Rating.target_id==target_id)
     )
     async with Stage.async_session() as session:
         result = await session.execute(stmt)

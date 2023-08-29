@@ -1,1 +1,1 @@
-"""Logic of bot"""
+"""General functions, main performance"""

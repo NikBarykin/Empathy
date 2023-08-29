@@ -2,13 +2,14 @@ from typing import Type
 
 from sqlalchemy import SQLColumnExpression
 
-from db.user import User
+from database.user import User
 
 from engine.score import partner_score_expr
 
 from .age import age_expr
 from .sex import sex_expr
 from .not_rated import not_rated_expr
+from .not_frozen import not_frozen_expr
 
 
 def partner_eligibility_expr(
@@ -24,7 +25,7 @@ def partner_eligibility_expr(
         &
         target.registered
         &
+        not_frozen_expr(target)
+        &
         (partner_score_expr(actor, target) >= 0)
-        # &
-        # (~target.frozen)
     )

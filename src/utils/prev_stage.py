@@ -1,5 +1,5 @@
 """Go to previous stage"""
-from stages.stage import Stage, go_stage
+from stage import Stage, go_stage
 from typing import Type
 
 from aiogram import F

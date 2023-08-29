@@ -1,7 +1,7 @@
 from typing import Type
 from sqlalchemy import SQLColumnExpression
-from db.user import User
-from db.rating import Rating
+from database.user import User
+from database.rating import Rating
 
 
 def not_rated_expr(

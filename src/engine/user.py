@@ -4,9 +4,10 @@ from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
-from stages.stage import Stage
-from db.user import User
+from stage import Stage
+from database.user import User
 
 
 async def get_user_by_id_with_session(id: int, session: AsyncSession) -> User:
@@ -36,10 +37,21 @@ async def update_field(
             setattr(user, field_name, value)
 
 
+async def get_field(id: int, field_name: str) -> Any:
+    async with Stage.async_session() as session:
+        user = await get_user_by_id_with_session(id=id, session=session)
+        return getattr(user, field_name)
+
+
 async def submit_user(user: User, logger: Logger | None):
     """Insert user into database"""
-    async with Stage.async_session() as session:
-        async with session.begin():
-            session.add(user)
-    if logger is not None:
-        logger.debug("Successfully submitted %s", user)
+    try:
+        async with Stage.async_session() as session:
+            async with session.begin():
+                session.add(user)
+        if logger is not None:
+            logger.info(
+                "Successfully submitted user %s", user)
+    except IntegrityError as e:
+        if logger is not None:
+            logger.error(e)

@@ -6,9 +6,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.filters import BaseFilter
 
-from engine.user import update_field
+from engine.user import update_field, get_field
 
-from stages.stage import Stage, go_next_stage
+from stage import Stage, go_next_stage
 
 from utils.logger import create_logger
 from utils.id import get_id
@@ -16,6 +16,18 @@ from utils.keyboard import (
     send_reply_kb, concat_reply_keyboards)
 from utils.prev_stage import (
     PREV_STAGE_KB, PREV_STAGE_FILTER, make_prev_stage_processor)
+
+
+class FieldStageBase(Stage):
+    """
+        Stage that corresponds to one of user's specific fields.
+        When user go through this stage, he fills that field.
+    """
+    field_name: str = None
+
+    @staticmethod
+    async def check_field_already_presented(state: FSMContext) -> bool:
+        """Check whether field 'field_name' is already filled in database"""
 
 
 def produce_field_stage(
@@ -27,9 +39,10 @@ def produce_field_stage(
     reply_kb_getter_arg,
     invalid_value_text_arg: str,
     filter_arg: BaseFilter,
+    skip_if_field_presented_arg: bool,
 ) -> Type[Stage]:
     """A trick to produce many stage classes"""
-    class FieldStage(Stage):
+    class FieldStage(FieldStageBase):
         """Basis for a stage that fills some field of user data"""
         name: str = stage_name_arg
         _main_state = State(state="main_" + stage_name_arg)
@@ -46,21 +59,41 @@ def produce_field_stage(
             return result
 
         @staticmethod
+        async def field_is_already_presented(state: FSMContext) -> bool:
+            """User already has this field in
+            user_id: int = await get_id(state)
+            field_value = await get_field(user_id, field_name_arg)
+            return field_value is not None
+
+        @staticmethod
         async def prepare(state: FSMContext):
             """Prepare stage"""
             await state.set_state(FieldStage._prepare_state)
 
+            user_id: int = await get_id(state)
+
+            # In some conditions this stage should be skipped
+            if (skip_if_field_presented_arg and
+                    await FieldStage.__field_is_already_presented(state)):
+                FieldStage._logger.debug(
+                    "Skipping stage for %s because target field is already presented", user_id)
+                return await go_next_stage(
+                    departure=FieldStage, state=state)
+
+            # If there is no inline-keyboard we can send regular-keyboard
+            # with the main message otherwise we have to send it separately
             if inline_kb_getter_arg is not None:
                 await send_reply_kb(
-                    chat_id=await get_id(state),
+                    chat_id=user_id,
                     kb=await FieldStage._get_reply_kb(state),
                 )
                 main_kb_getter = inline_kb_getter_arg
             else:
                 main_kb_getter = FieldStage._get_reply_kb
 
+            # Send main message
             result = await Stage.bot.send_message(
-                await get_id(state),
+                user_id,
                 prepare_text_arg,
                 reply_markup=await main_kb_getter(state),
             )
@@ -68,7 +101,7 @@ def produce_field_stage(
             await state.set_state(FieldStage._main_state)
 
             FieldStage._logger.debug(
-                "prepared stage for id=%s", await get_id(state))
+                "prepared stage for %s", user_id)
 
             return result
 

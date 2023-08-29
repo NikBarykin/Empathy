@@ -2,14 +2,20 @@ from typing import Type
 
 from sqlalchemy import SQLColumnExpression, case
 
-from db.user import User
+from database.user import User
+
+from .score_subexpr import ScoreSubexpr
 
 
-def city_expr(
-    actor: User | Type[User],
-    target: Type[User] | User,
-) -> SQLColumnExpression[float]:
-    return case(
-        (target.city==actor.city, 0),
-        else_=-100
-    )
+class CitySubexpr(ScoreSubexpr):
+    max_possible_score = 0
+
+    @staticmethod
+    def process(
+        actor: User | Type[User],
+        target: Type[User] | User,
+    ) -> SQLColumnExpression[float]:
+        return case(
+            (target.city==actor.city, CitySubexpr.max_possible_score),
+            else_=-100
+        )
