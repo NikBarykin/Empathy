@@ -17,17 +17,7 @@ from utils.keyboard import (
 from utils.prev_stage import (
     PREV_STAGE_KB, PREV_STAGE_FILTER, make_prev_stage_processor)
 
-
-class FieldStageBase(Stage):
-    """
-        Stage that corresponds to one of user's specific fields.
-        When user go through this stage, he fills that field.
-    """
-    field_name: str = None
-
-    @staticmethod
-    async def check_field_already_presented(state: FSMContext) -> bool:
-        """Check whether field 'field_name' is already filled in database"""
+from .base import FieldStageBase
 
 
 def produce_field_stage(
@@ -39,12 +29,12 @@ def produce_field_stage(
     reply_kb_getter_arg,
     invalid_value_text_arg: str,
     filter_arg: BaseFilter,
-    skip_if_field_presented_arg: bool,
 ) -> Type[Stage]:
     """A trick to produce many stage classes"""
     class FieldStage(FieldStageBase):
         """Basis for a stage that fills some field of user data"""
         name: str = stage_name_arg
+        field_name: str = field_name_arg
         _main_state = State(state="main_" + stage_name_arg)
         _logger = create_logger(stage_name=stage_name_arg)
         _prepare_state = State(state="prepare_" + stage_name_arg)
@@ -54,15 +44,15 @@ def produce_field_stage(
         async def _get_reply_kb(state: FSMContext) -> ReplyKeyboardMarkup:
             # 'and' in case reply_kb_getter_arg is None
             result = reply_kb_getter_arg and await reply_kb_getter_arg(state)
-            if FieldStage.allow_go_back:
+            if FieldStage.prev_stage is not None:
                 result = concat_reply_keyboards(result, PREV_STAGE_KB)
             return result
 
         @staticmethod
-        async def field_is_already_presented(state: FSMContext) -> bool:
-            """User already has this field in
+        async def check_field_already_presented(state: FSMContext) -> bool:
+            """User already has this field in database"""
             user_id: int = await get_id(state)
-            field_value = await get_field(user_id, field_name_arg)
+            field_value = await get_field(user_id, FieldStage.field_name)
             return field_value is not None
 
         @staticmethod
@@ -71,14 +61,6 @@ def produce_field_stage(
             await state.set_state(FieldStage._prepare_state)
 
             user_id: int = await get_id(state)
-
-            # In some conditions this stage should be skipped
-            if (skip_if_field_presented_arg and
-                    await FieldStage.__field_is_already_presented(state)):
-                FieldStage._logger.debug(
-                    "Skipping stage for %s because target field is already presented", user_id)
-                return await go_next_stage(
-                    departure=FieldStage, state=state)
 
             # If there is no inline-keyboard we can send regular-keyboard
             # with the main message otherwise we have to send it separately
@@ -128,12 +110,13 @@ def produce_field_stage(
             message: Message, state: FSMContext
         ):
             """User passed invalid value"""
-            return await message.answer(invalid_value_text_arg)
+            await message.answer(invalid_value_text_arg)
+            return await FieldStage.prepare(state)
 
         @staticmethod
         def register(router: Router) -> None:
             """Register handlers"""
-            if FieldStage.allow_go_back:
+            if FieldStage.prev_stage is not None:
                 router.message.register(
                     make_prev_stage_processor(FieldStage),
                     FieldStage._main_state,

@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 
 from stage import Stage, go_next_stage
 
-from utils.field_base import produce_field_stage
+from field_stage import produce_field_stage
 from utils.message_value_getters.text import raw_getter
 
 from engine.user import update_field
@@ -17,7 +17,7 @@ from .logic import get_bio_from_telegram
 from .constants import USE_BIO_FROM_TELEGRAM_TEXT, TARGET_FIELD_NAME
 
 
-def make_bio_stage(stage_name_arg: str, skip_if_field_presented: bool) -> Type[Stage]:
+def make_bio_stage(stage_name_arg: str) -> Type[Stage]:
     Base = produce_field_stage(
         stage_name_arg=stage_name_arg,
         field_name_arg=TARGET_FIELD_NAME,
@@ -27,7 +27,6 @@ def make_bio_stage(stage_name_arg: str, skip_if_field_presented: bool) -> Type[S
         reply_kb_getter_arg=get_kb,
         invalid_value_text_arg="Ошибка",
         filter_arg=BIO_FILTER,
-        skip_if_field_presented_arg=skip_if_field_presented,
     )
 
     class BioStage(Base):
@@ -56,6 +55,7 @@ def make_bio_stage(stage_name_arg: str, skip_if_field_presented: bool) -> Type[S
             )
             # Crutch: it is important to pass next_stage value to the Base
             Base.next_stage = BioStage.next_stage
+            Base.prev_stage = BioStage.prev_stage
             Base.register(router)
 
     return BioStage

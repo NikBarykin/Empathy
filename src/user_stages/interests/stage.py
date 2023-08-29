@@ -6,11 +6,10 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 
-from database.user import User
-
-from engine.user import get_user_by_id, update_field
+from engine.user import update_field, get_field
 
 from stage import Stage, go_next_stage
+from field_stage import FieldStageBase
 
 from utils.id import get_id
 from utils.keyboard import send_reply_kb
@@ -23,30 +22,40 @@ from .constants import (
 from .keyboard import get_question_kb, get_submit_kb
 
 
-def make_interests_stage(stage_name_arg: str, skip_if_field_presented: bool) -> Type[Stage]:
-    class InterestsStage(Stage):
+def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
+    class InterestsStage(FieldStageBase):
         """User's interests"""
         name: str = stage_name_arg
+        field_name: str = "interests"
         __main_state = State(state="main")
         __prepare_state = State(state="prepare")
 
         @staticmethod
-        async def __get_interests(state: FSMContext) -> List[str]:
-            return (await state.get_data())['interests']
+        async def __get_checked_interests(state: FSMContext) -> List[str]:
+            return (await state.get_data())[InterestsStage.field_name]
+
+        @staticmethod
+        async def __get_interests_from_db(user_id: int) -> List[str]:
+            return await get_field(id=user_id, field_name=InterestsStage.field_name)
+
+        @staticmethod
+        async def check_field_already_presented(state: FSMContext) -> bool:
+            """Defining a method from class-base which is FieldStageBase"""
+            user_id = await get_id(state)
+            field_value = await InterestsStage.__get_interests_from_db(user_id)
+            return field_value is not None
 
         @staticmethod
         async def prepare(state: FSMContext):
             await state.set_state(InterestsStage.__prepare_state)
 
             user_id: int = await get_id(state)
-            user: User = await get_user_by_id(user_id)
 
-            if skip_if_field_presented and user.interests is not None:
-                return await go_next_stage(
-                    departure=InterestsStage, state=state)
+            checked_interests = (
+                await InterestsStage.__get_interests_from_db(user_id) or [])
 
-            checked_interests = user.interests or []
-            await state.update_data(interests=checked_interests)
+            await state.update_data(
+                **{InterestsStage.field_name: checked_interests})
 
             await send_reply_kb(chat_id=user_id, kb=PREV_STAGE_KB)
 
@@ -67,7 +76,7 @@ def make_interests_stage(stage_name_arg: str, skip_if_field_presented: bool) -> 
             state: FSMContext,
         ):
             """Add or remove a user's interest"""
-            checked_interests: str = await InterestsStage.__get_interests(state)
+            checked_interests: str = await InterestsStage.__get_checked_interests(state)
             target_interest: str = callback_data.interest
 
             if target_interest in checked_interests:
@@ -93,7 +102,7 @@ def make_interests_stage(stage_name_arg: str, skip_if_field_presented: bool) -> 
             state: FSMContext,
         ):
             """Submit user's interests and go to next stage"""
-            checked_interests: str = await InterestsStage.__get_interests(state)
+            checked_interests: str = await InterestsStage.__get_checked_interests(state)
 
             if len(checked_interests) < MIN_NO_INTERESTS:
                 await callback.answer(text=NOT_ENOUGH_INTERESTS_TEXT)
@@ -116,7 +125,7 @@ def make_interests_stage(stage_name_arg: str, skip_if_field_presented: bool) -> 
 
         @staticmethod
         def register(router: Router) -> None:
-            if InterestsStage.allow_go_back:
+            if InterestsStage.prev_stage is not None:
                 router.message.register(
                     make_prev_stage_processor(InterestsStage),
                     InterestsStage.__main_state,

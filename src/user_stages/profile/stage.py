@@ -72,7 +72,7 @@ class ProfileStage(Stage):
 
     @staticmethod
     def register(router: Router) -> None:
-        if ProfileStage.allow_go_back:
+        if ProfileStage.prev_stage is not None:
             router.message.register(
                 make_prev_stage_processor(ProfileStage),
                 ProfileStage.__main_state,

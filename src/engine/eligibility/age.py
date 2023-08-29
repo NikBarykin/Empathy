@@ -8,7 +8,7 @@ def age_expr(
     target: Type[User] | User,
 ) -> SQLColumnExpression[bool]:
     return (
-        (target.age >= actor.min_preferred_age)
+        (target.age >= actor.min_partner_age)
         &
-        (target.age <= actor.max_preferred_age)
+        (target.age <= actor.max_partner_age)
     )

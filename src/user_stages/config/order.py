@@ -1,35 +1,46 @@
 """When this module is imported it connects stages in specific order"""
-from stage import forbid_go_back
+from typing import Type
+
+from stage import Stage
 
 from .declarations.all_stages import (
     FORWARD_STAGES,
     UPDATE_STAGES,
     StartStage,
     MatchStage,
+    ChooseUpdateStage,
+    ProfileStage,
     RegistrationStage,
     FreezeStage,
 )
 
 
+def connect_bydir(departure: Type[Stage], destination: Type[Stage]):
+    """Connect in both directions"""
+    departure.next_stage = destination
+    destination.prev_stage = departure
+
+
 # Start-stage
-forbid_go_back(StartStage)
 StartStage.next_stage = FORWARD_STAGES[0]
 
 # Order forward-stages
-for i in range(len(FORWARD_STAGES)):
-    if i != 0:
-        FORWARD_STAGES[i - 1].next_stage = FORWARD_STAGES[i]
+for i in range(len(FORWARD_STAGES) - 1):
+    connect_bydir(FORWARD_STAGES[i], FORWARD_STAGES[i + 1])
 FORWARD_STAGES[-1].next_stage = RegistrationStage
 
 # Registration
 RegistrationStage.next_stage = MatchStage
 
-# First forward-stage can't go back
-forbid_go_back(FORWARD_STAGES[0])
+# Profile-stage
+ProfileStage.prev_stage = MatchStage
 
 # Freeze-stage
-FreezeStage.next_stage = MatchStage
+# We need to notify user's in waiting pool about our unfreeze
+FreezeStage.next_stage = RegistrationStage
 
-# Order update-stages
+# update-stages
+ChooseUpdateStage.prev_stage = ProfileStage
 for stage in UPDATE_STAGES:
+    stage.prev_stage = ChooseUpdateStage
     stage.next_stage = MatchStage

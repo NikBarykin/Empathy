@@ -31,8 +31,8 @@ class User(Base, CleanModel):
     bio: Mapped[Optional[str]]
 
     # TODO: MIN_AGE, MAX_AGE constants
-    min_preferred_age: Mapped[int] = mapped_column(sa.Integer, default=0)
-    max_preferred_age: Mapped[int] = mapped_column(sa.Integer, default=100)
+    min_partner_age: Mapped[int] = mapped_column(sa.Integer, default=0)
+    max_partner_age: Mapped[int] = mapped_column(sa.Integer, default=100)
 
     # metainformation
     # TODO: move to other class

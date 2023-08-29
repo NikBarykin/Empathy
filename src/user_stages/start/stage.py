@@ -9,7 +9,7 @@ from aiogram.fsm.state import State
 
 from sqlalchemy import select
 
-from stage import Stage
+from stage import Stage, go_stage
 
 from database.user import User
 
@@ -17,12 +17,14 @@ from engine.user import submit_user
 
 from utils.logger import create_logger
 
-from .logic import skip_completed_field_stages
+from user_stages.config.declarations.forward_stages import FORWARD_STAGES
+
+from .constants import COMMAND_DESCRIPTION
 
 
 class StartStage(Stage):
-    name: int = "start stage"
-    description: str = "Перезагрузить бота"
+    name: int = "StartStage"
+    description: str = COMMAND_DESCRIPTION
     # __process_state = State(state="process_" + name)
     __logger: Logger = create_logger(name)
 
@@ -31,8 +33,17 @@ class StartStage(Stage):
         pass
 
     @staticmethod
-    async def skip_completed_field_stages(state: FSMContext) -> None:
+    async def __find_first_uncompleted_stage(state: FSMContext):
+        result = StartStage.next_stage
+        while result in FORWARD_STAGES and await result.check_field_already_presented(state):
+            result = result.next_stage
+        return result
 
+    @staticmethod
+    async def skip_completed_field_stages(state: FSMContext):
+        """Skip forward stages that are already completed (fields are filled in database)"""
+        following_stage = await StartStage.__find_first_uncompleted_stage(state)
+        return await following_stage.prepare(state)
 
     @staticmethod
     async def process(
@@ -48,12 +59,12 @@ class StartStage(Stage):
         await submit_user(User(id=user_id), logger=StartStage.__logger)
 
         await state.clear()
-        await state.set_data({id: user_id})
+        await state.set_data({"id": user_id})
 
         StartStage.__logger.info(
             "%s started successfully", user_id)
 
-        return await skip_completed_field_stages(state)
+        return await StartStage.skip_completed_field_stages(state)
 
     @staticmethod
     def register(router: Router) -> None:

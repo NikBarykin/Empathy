@@ -46,8 +46,8 @@ async def get_query_kb(
     assert 0 <= partner_score <= 1
 
     partner_score_percent = round(partner_score * 100)
-    # We don't want user's to see low values
-    partner_score_percent = max(partner_score_percent, 20 + randint(-2, 2))
+    # We don't want user's to see low values, but for convenience it would be slightly different for different targets
+    partner_score_percent = max(partner_score_percent, 20 + (target_id % 5 - 2))
 
     builder.row(
         InlineKeyboardButton(

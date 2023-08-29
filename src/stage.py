@@ -24,7 +24,9 @@ class Stage(StatesGroup):
         states automatically in 'go_stage' call
     """
 
-    allow_go_back: bool = True
+#     # this attribute is common for every stage
+#     # because it has to be specified in 'order-section' and not in some 'stage-section'
+#     allow_go_back: bool = True
 
     @staticmethod
     async def prepare(state: FSMContext) -> None:
@@ -37,16 +39,12 @@ class Stage(StatesGroup):
         raise NotImplementedError("Should be implemented in subclass")
 
 
+# TODO: get reed of this function
 async def go_stage(
     departure: Type[Stage],
     destination: Type[Stage],
     state: FSMContext,
 ):
-    # TODO: rework all prev_stage system
-    for _  in range(10):
-        print(f"departure={departure.name}, destination={destination.name}")
-    if destination.prev_stage is None:
-        destination.prev_stage = departure
     return await destination.prepare(state)
 
 
@@ -61,11 +59,5 @@ async def go_next_stage(
     )
 
 
-# def connect(first_stage: Type[Stage], late_stage: Type[Stage]) -> None:
-#     """Connect two consecutive stages"""
-#     first_stage.next_stage = late_stage
-#     late_stage.prev_stage = first_stage
-
-
-def forbid_go_back(stage: Type[Stage]) -> None:
-    stage.allow_go_back = False
+# def forbid_go_back(stage: Type[Stage]) -> None:
+#     stage.allow_go_back = False
