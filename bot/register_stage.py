@@ -11,6 +11,7 @@ from matching.stage import MatchStage
 
 from stage_order import next_stage
 from db.user import User
+from db.match import get_user_by_telegram_id
 
 from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.state import State
@@ -27,17 +28,25 @@ class RegisterStage(Stage):
     @staticmethod
     async def notify_waiting_pool_on_new_user(state: FSMContext, new_user: User) -> None:
         stmt = (
-            select(User)
+            select(User.id)
             .where(User.in_waiting_pool==True)
             .where(User.id!=new_user.id)
             # .where(new_user.is_eligible_candidate_for(User))
         )
 
         async with Stage.async_session() as session:
-            for user in (await session.scalars(stmt)).all():
-                # logging.info(f"User {new_user.telegram_handle} registered and {user.telegram_handle} was notified about it")
+            target_ids = (await session.scalars(stmt)).all()
 
-                user.in_waiting_pool=False
+        for user_id in target_ids:
+            async with Stage.async_session() as session:
+                user = await get_user_by_telegram_id(telegram_id=user_id, session=session)
+
+                if not user.in_waiting_pool:
+                    logging.debug(
+                        "%s was already notified, so there is no need to notify him again", user.id)
+                    continue
+
+                user.in_waiting_pool = False
                 await session.commit()
 
                 await MatchStage.get_next_match(
