@@ -43,7 +43,7 @@ async def get_field(id: int, field_name: str) -> Any:
         return getattr(user, field_name)
 
 
-async def submit_user(user: User, logger: Logger | None):
+async def submit_user(user: User, logger: Logger | None) -> None:
     """Insert user into database"""
     try:
         async with Stage.async_session() as session:
@@ -55,3 +55,12 @@ async def submit_user(user: User, logger: Logger | None):
     except IntegrityError as e:
         if logger is not None:
             logger.error(e)
+
+
+async def reset_metadata(user_id: int) -> None:
+    """Reset user's metadata such as 'frozen'-field"""
+    async with Stage.async_session() as session:
+        user = await get_user_by_id_with_session(id=user_id, session=session)
+        async with session.begin():
+            user.frozen = False
+            user.blocked_bot = False

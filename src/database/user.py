@@ -36,7 +36,8 @@ class User(Base, CleanModel):
 
     # metainformation
     # TODO: move to other class
-    in_waiting_pool: Mapped[bool] = mapped_column(default=False)
+    in_waiting_pool: Mapped[bool] = mapped_column(sa.Boolean, default=False)
+    blocked_bot: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     frozen: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     verified: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     reported_cnt: Mapped[int] = mapped_column(sa.Boolean, default=0)

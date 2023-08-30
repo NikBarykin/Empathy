@@ -42,5 +42,6 @@ FreezeStage.next_stage = RegistrationStage
 # update-stages
 ChooseUpdateStage.prev_stage = ProfileStage
 for stage in UPDATE_STAGES:
+    ChooseUpdateStage.add_alternative(stage)
     stage.prev_stage = ChooseUpdateStage
     stage.next_stage = MatchStage

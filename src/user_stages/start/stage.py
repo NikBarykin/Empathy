@@ -13,7 +13,7 @@ from stage import Stage, go_stage
 
 from database.user import User
 
-from engine.user import submit_user
+from engine.user import submit_user, reset_metadata
 
 from utils.logger import create_logger
 
@@ -23,7 +23,7 @@ from .constants import COMMAND_DESCRIPTION
 
 
 class StartStage(Stage):
-    name: int = "StartStage"
+    name: int = "start"
     description: str = COMMAND_DESCRIPTION
     # __process_state = State(state="process_" + name)
     __logger: Logger = create_logger(name)
@@ -51,12 +51,14 @@ class StartStage(Stage):
         state: FSMContext,
     ) -> None:
         """
-            Restarts bot, clears aiogram-state, BUT doesn't remove user from database.
+            Restarts bot, clears aiogram-state,
+            updates some metadata in database, BUT doesn't remove user from database.
             Skips stages that are already presented by user
         """
         # TODO: process_state
         user_id = message.from_user.id
         await submit_user(User(id=user_id), logger=StartStage.__logger)
+        await reset_metadata(user_id=user_id)
 
         await state.clear()
         await state.set_data({"id": user_id})
@@ -68,9 +70,8 @@ class StartStage(Stage):
 
     @staticmethod
     def register(router: Router) -> None:
+        # start-command is available from any state
         router.message.register(
             StartStage.process,
-            Command("start"),
-            # default_state,
-            # StartStage.state,
+            Command(StartStage.name),
         )

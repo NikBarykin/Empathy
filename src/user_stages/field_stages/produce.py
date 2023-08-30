@@ -5,6 +5,7 @@ from aiogram.types import Message, ReplyKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.filters import BaseFilter
+from aiogram.methods import SendMessage
 
 from engine.user import update_field, get_field
 
@@ -16,6 +17,7 @@ from utils.keyboard import (
     send_reply_kb, concat_reply_keyboards)
 from utils.prev_stage import (
     PREV_STAGE_KB, PREV_STAGE_FILTER, make_prev_stage_processor)
+from utils.execute_method import execute_method
 
 from .base import FieldStageBase
 
@@ -28,17 +30,22 @@ def produce_field_stage(
     inline_kb_getter_arg,
     reply_kb_getter_arg,
     invalid_value_text_arg: str,
-    filter_arg: BaseFilter,
+    message_filter_arg: BaseFilter,
 ) -> Type[Stage]:
     """A trick to produce many stage classes"""
+    # TODO: forbid to inherit from this class
+    # (there is a problem when a derived class changes next_stage/prev_stage attribute
+    # it doesn't change in base [FieldStage] class)
     class FieldStage(FieldStageBase):
         """Basis for a stage that fills some field of user data"""
         name: str = stage_name_arg
         field_name: str = field_name_arg
-        _main_state = State(state="main_" + stage_name_arg)
-        _logger = create_logger(stage_name=stage_name_arg)
-        _prepare_state = State(state="prepare_" + stage_name_arg)
-        _process_state = State(state="process_" + stage_name_arg)
+        message_filter = message_filter_arg
+
+        _main_state = State(state="main_" + name)
+        _logger = create_logger(stage_name=name)
+        _prepare_state = State(state="prepare_" + name)
+        _process_state = State(state="process_" + name)
 
         @staticmethod
         async def _get_reply_kb(state: FSMContext) -> ReplyKeyboardMarkup:
@@ -125,7 +132,7 @@ def produce_field_stage(
 
             router.message.register(
                 FieldStage._process_set_field,
-                filter_arg,
+                FieldStage.message_filter,
                 FieldStage._main_state,
             )
 

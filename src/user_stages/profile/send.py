@@ -1,8 +1,10 @@
 """Send user's profile to some chat"""
 from aiogram.types import InlineKeyboardMarkup
+from aiogram.methods import SendPhoto
 
-from stage import Stage
 from database.user import User
+from utils.execute_method import execute_method
+
 from .constants import get_profile_caption
 
 
@@ -12,9 +14,11 @@ async def send_profile(
     reply_markup: InlineKeyboardMarkup | None = None,
 ):
     # TODO: process exception
-    await Stage.bot.send_photo(
-        chat_id=chat_id,
-        photo=user.photo,
-        caption=get_profile_caption(user),
-        reply_markup=reply_markup,
+    return await execute_method(
+        SendPhoto(
+            chat_id=chat_id,
+            photo=user.photo,
+            caption=get_profile_caption(user),
+            reply_markup=reply_markup,
+        )
     )

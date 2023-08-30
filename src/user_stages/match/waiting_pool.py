@@ -29,6 +29,7 @@ async def notify_waiting_pool(new_user_id: int, logger: Logger) -> None:
             select(User.id)
             .where(User.in_waiting_pool)
             .where(~User.frozen)
+            .where(~User.blocked_bot)
             .where(partner_eligibility_expr(actor=User, target=new_user))
         )
 

@@ -5,6 +5,7 @@ from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.command import Command
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.methods import SendMessage
 
 from database.user import User
 from database.rating import Rating
@@ -12,6 +13,7 @@ from database.rating import Rating
 from utils.logger import create_logger
 from utils.id import get_id
 from utils.keyboard import remove_reply_keyboard
+from utils.execute_method import execute_method
 
 from engine.search import find_partner_for
 # TODO:
@@ -53,17 +55,20 @@ class MatchStage(Stage):
         )
 
     @staticmethod
-    async def __process_no_partner(actor_id: int, state: FSMContext):
+    async def __process_no_partner(actor_id: int, state: FSMContext) -> Message | None:
         MatchStage.__logger.info(
             "Didn't find a partner for %s", actor_id)
 
         await put_in_waiting_pool(
             actor_id, logger=MatchStage.__logger)
 
-        result = await Stage.bot.send_message(
-            actor_id,
-            text=PARTNERS_NOT_FOUND_TEXT,
-            reply_markup=ReplyKeyboardRemove(),
+        # TODO process error-situation (for example when user blocked bot)
+        result: Message | None = await execute_method(
+            SendMessage(
+                chat_id=actor_id,
+                text=PARTNERS_NOT_FOUND_TEXT,
+                reply_markup=ReplyKeyboardRemove(),
+            )
         )
 
         await state.set_state(MatchStage.__main_state)
