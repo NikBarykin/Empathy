@@ -6,6 +6,8 @@ from stages_initialization import init_stages
 from aiogram import Bot, Dispatcher, F, types, Router
 from aiogram.fsm.state import State, StatesGroup, any_state
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.loggers import event as event_logger
+
 from sqlalchemy.engine import URL
 # sqlalchemy
 # asyncio
@@ -57,6 +59,13 @@ def configure_logging() -> None:
         level = logging.DEBUG,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
+
+    # logging for aiogram events
+    event_handler = logging.FileHandler("sueta.log", mode="a")
+    event_formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+    event_handler.setFormatter(event_formatter)
+    event_logger.addHandler(event_handler)
 
 
 async def bot_start(logger: logging.Logger) -> None:
