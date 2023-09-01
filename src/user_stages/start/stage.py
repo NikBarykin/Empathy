@@ -16,6 +16,7 @@ from database.user import User
 from engine.user import submit_user, reset_metadata
 
 from utils.logger import create_logger
+from utils.restart_state import restart_state
 
 from user_stages.config.declarations.forward_stages import FORWARD_STAGES
 
@@ -60,8 +61,7 @@ class StartStage(Stage):
         await submit_user(User(id=user_id), logger=StartStage.__logger)
         await reset_metadata(user_id=user_id)
 
-        await state.clear()
-        await state.set_data({"id": user_id})
+        await restart_state(state=state, user_id=user_id)
 
         StartStage.__logger.info(
             "%s started successfully", user_id)

@@ -22,6 +22,7 @@ async def find_partner_for(actor_id: int):
         stmt = (
             select(User)
             .where(partner_eligibility_expr(actor, User))
+            .where(partner_eligibility_expr(User, actor))
             .order_by(partner_score_expr(actor, User))
         )
 

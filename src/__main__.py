@@ -10,8 +10,7 @@ from stage import Stage
 
 # This import initializes user-stages
 from user_stages.config import configure
-
-# import stages.moderation.config
+from moderation_stages.config import configure
 
 from database.config import DATABASE_URL
 from database.base import Base

@@ -11,3 +11,6 @@ def get_profile_caption(user: User) -> str:
 # TODO: smily
 UPDATE_BUTTON_TEXT: str = "🎁Обновить анкету🎁"
 FREEZE_BUTTON_TEXT: str = "❄️Заморозить анкету❄️"
+
+CONTINUE_TEXT: str = "продолжить"
+"""Text in button, that user presses to continue to match-stage"""

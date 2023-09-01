@@ -1,7 +1,5 @@
 """When this module is imported it connects stages in specific order"""
-from typing import Type
-
-from stage import Stage
+from utils.order import connect_bydir
 
 from .declarations.all_stages import (
     FORWARD_STAGES,
@@ -13,12 +11,6 @@ from .declarations.all_stages import (
     RegistrationStage,
     FreezeStage,
 )
-
-
-def connect_bydir(departure: Type[Stage], destination: Type[Stage]):
-    """Connect in both directions"""
-    departure.next_stage = destination
-    destination.prev_stage = departure
 
 
 # Start-stage

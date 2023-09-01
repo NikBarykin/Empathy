@@ -14,14 +14,15 @@ from engine.user import update_field
 from .keyboard import get_kb
 from .filter import BIO_FILTER
 from .logic import get_bio_from_telegram
-from .constants import USE_BIO_FROM_TELEGRAM_TEXT, TARGET_FIELD_NAME
+from .constants import (
+    USE_BIO_FROM_TELEGRAM_TEXT, TARGET_FIELD_NAME, QUESTION_TEXT)
 
 
 def make_bio_stage(stage_name_arg: str) -> Type[Stage]:
     Base = produce_field_stage(
         stage_name_arg=stage_name_arg,
         field_name_arg=TARGET_FIELD_NAME,
-        prepare_text_arg="Напиши немного о себе",
+        prepare_text_arg=QUESTION_TEXT,
         value_getter_arg=raw_getter,
         inline_kb_getter_arg=None,
         reply_kb_getter_arg=get_kb,

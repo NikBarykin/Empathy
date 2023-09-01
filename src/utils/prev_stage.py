@@ -1,31 +1,16 @@
 """Go to previous stage"""
-from stage import Stage, go_stage
+from stage import Stage
 from typing import Type
 
 from aiogram import F
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, Message
 from aiogram.fsm.context import FSMContext
 
-from .keyboard import send_reply_kb
-
-
-async def go_prev_stage(
-    departure: Type[Stage],
-    state: FSMContext,
-):
-    return await go_stage(
-        departure=departure,
-        destination=departure.prev_stage,
-        state=state,
-    )
+from utils.keyboard import send_reply_kb, RowKeyboard
 
 
 PREV_STAGE_TEXT: str = "Назад"
-PREV_STAGE_KB = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text=PREV_STAGE_TEXT)]],
-    resize_keyboard=True,
-    one_time_keyboard=True,
-)
+PREV_STAGE_KB = RowKeyboard(PREV_STAGE_TEXT)
 
 
 async def send_prev_stage_keyboard(chat_id: int):
@@ -34,10 +19,7 @@ async def send_prev_stage_keyboard(chat_id: int):
 
 def make_prev_stage_processor(departure_stage: Type[Stage]):
     async def process_go_prev_stage(_: Message, state: FSMContext):
-        return await go_prev_stage(
-            departure=departure_stage,
-            state=state,
-        )
+        return departure_stage.prev_stage.prepare(state)
     return process_go_prev_stage
 
 

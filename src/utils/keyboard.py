@@ -1,7 +1,28 @@
 """Managing keyboards"""
+from typing import Iterable
+
 from stage import Stage
 
-from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.types import (
+    ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton)
+
+
+class RowKeyboard(ReplyKeyboardMarkup):
+    """Reply-keyboard with one row containing buttons with given texts"""
+    def __init__(
+        self,
+        *button_texts: str,
+        one_time_keyboard: bool=True,
+        resize_keyboard: bool=True,
+    ):
+        super().__init__(
+            keyboard=[[
+                KeyboardButton(text=button_text)
+                for button_text in button_texts
+            ]],
+            one_time_keyboard=one_time_keyboard,
+            resize_keyboard=resize_keyboard,
+        )
 
 
 def concat_reply_keyboards(
