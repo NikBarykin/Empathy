@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+from aiogram.loggers import event as event_logger
 
 # Stages
 from stage import Stage
@@ -31,6 +32,13 @@ def configure_logging() -> None:
         level=logging.DEBUG,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
+
+    # logging for aiogram events
+    event_handler = logging.FileHandler("sueta.log", mode="a")
+    event_formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+    event_handler.setFormatter(event_formatter)
+    event_logger.addHandler(event_handler)
 
 
 async def main() -> None:

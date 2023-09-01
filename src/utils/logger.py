@@ -6,7 +6,7 @@ def create_logger(stage_name: str) -> logging.Logger:
     logger = logging.getLogger(stage_name)
 
     # handler
-    handler = logging.FileHandler("stages.log")
+    handler = logging.FileHandler("stages.log", mode="a")
 
     # formatter
     formatter = logging.Formatter(
