@@ -2,7 +2,7 @@ from stage import Stage
 
 import sqlalchemy as sa
 
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
@@ -16,6 +16,7 @@ from utils.prev_stage import (
     PREV_STAGE_KB, make_prev_stage_processor, PREV_STAGE_FILTER)
 from utils.keyboard import RowKeyboard
 from utils.order import make_stage_jumper
+from utils.logger import create_logger
 
 from .constants import (
     QUESTION_TEXT, INSURANCE_TEXT, SUBMIT_TEXT, WRITE_OTHER_MESSAGE_TEXT)
@@ -29,6 +30,7 @@ class NotifyUsersStage(Stage):
     __handling_message_state = State(state="handling_message_state" + name)
     __making_sure_state = State(state="making_sure_state" + name)
     __notifying_users_state = State(state="notifying_users_state" + name)
+    __logger = create_logger(name)
 
     @staticmethod
     async def prepare(state: FSMContext) -> Message:
@@ -59,8 +61,8 @@ class NotifyUsersStage(Stage):
         await state.set_state(NotifyUsersStage.__handling_message_state)
 
         await state.update_data(
-            notify_from_chat_id=message.chat_id,
-            notify_messaage_id=message.message_id,
+            notify_from_chat_id=message.chat.id,
+            notify_message_id=message.message_id,
         )
 
         user_id: int = message.from_user.id
@@ -74,10 +76,11 @@ class NotifyUsersStage(Stage):
                         SUBMIT_TEXT, WRITE_OTHER_MESSAGE_TEXT
                     )
                 ),
-            )
+            ),
+            logger=NotifyUsersStage.__logger,
         )
 
-        await state.set_state(NotifyUsersStage.__making_sure)
+        await state.set_state(NotifyUsersStage.__making_sure_state)
 
         return result
 
@@ -87,7 +90,7 @@ class NotifyUsersStage(Stage):
         state: FSMContext,
     ):
         """Returns result of 'prepare'-method of the next stage"""
-        await state.set_state(NotifyUsersStage.__notifying_users)
+        await state.set_state(NotifyUsersStage.__notifying_users_state)
 
         select_stmt = (
             sa.select(User.id)
@@ -96,12 +99,13 @@ class NotifyUsersStage(Stage):
         )
 
         async with Stage.async_session() as session:
-            target_ids = await session.execute(select_stmt).scalars()
+            target_ids = (await session.execute(select_stmt)).scalars()
 
         await notify_users(
             user_ids=target_ids,
-            from_chat_id=await state.get_data()['notify_from_chat_id'],
-            message_id=await state.get_data()['notify_message_id'],
+            from_chat_id=(await state.get_data())['notify_from_chat_id'],
+            message_id=(await state.get_data())['notify_message_id'],
+            logger=NotifyUsersStage.__logger,
         )
 
         return await NotifyUsersStage.next_stage.prepare(state)
@@ -109,7 +113,7 @@ class NotifyUsersStage(Stage):
     @staticmethod
     async def process_write_other_message(_: Message, state: FSMContext) -> Message:
         """Calls NotifyUsersStage.prepare and returns the result"""
-        return NotifyUsersStage.prepare(state)
+        return await NotifyUsersStage.prepare(state)
 
     @staticmethod
     def register(router: Router) -> None:
@@ -128,11 +132,11 @@ class NotifyUsersStage(Stage):
         router.message.register(
             NotifyUsersStage.process_submit_message,
             NotifyUsersStage.__making_sure_state,
-            SUBMIT_TEXT,
+            F.text==SUBMIT_TEXT,
         )
 
         router.message.register(
             NotifyUsersStage.process_write_other_message,
             NotifyUsersStage.__making_sure_state,
-            WRITE_OTHER_MESSAGE_TEXT,
+            F.text==WRITE_OTHER_MESSAGE_TEXT,
         )

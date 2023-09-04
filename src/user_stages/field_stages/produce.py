@@ -9,7 +9,7 @@ from aiogram.methods import SendMessage
 
 from engine.user import update_field, get_field
 
-from stage import Stage, go_next_stage
+from stage import Stage
 
 from utils.logger import create_logger
 from utils.id import get_id
@@ -18,6 +18,7 @@ from utils.keyboard import (
 from utils.prev_stage import (
     PREV_STAGE_KB, PREV_STAGE_FILTER, make_prev_stage_processor)
 from utils.execute_method import execute_method
+from utils.order import make_stage_jumper
 
 from .base import FieldStageBase
 
@@ -110,7 +111,7 @@ def produce_field_stage(
             FieldStage._logger.debug(
                 "set field for id=%s", await get_id(state))
 
-            return await go_next_stage(departure=FieldStage, state=state)
+            return await FieldStage.next_stage.prepare(state)
 
         @staticmethod
         async def _process_invalid_value(
@@ -125,7 +126,7 @@ def produce_field_stage(
             """Register handlers"""
             if FieldStage.prev_stage is not None:
                 router.message.register(
-                    make_prev_stage_processor(FieldStage),
+                    make_stage_jumper(target_stage=FieldStage.prev_stage),
                     FieldStage._main_state,
                     PREV_STAGE_FILTER,
                 )

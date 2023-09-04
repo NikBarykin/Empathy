@@ -1,6 +1,6 @@
 from typing import Type
 
-from stage import Stage, go_next_stage
+from stage import Stage
 
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
@@ -11,7 +11,7 @@ from engine.user import update_field
 
 from utils.message_value_getters.photo import first_photo_getter
 from utils.id import get_id
-from field_stage import produce_field_stage
+from user_stages.field_stages.produce import produce_field_stage
 
 from .keyboard import get_kb
 from .filter import PHOTO_FILTER
@@ -28,7 +28,7 @@ def make_photo_stage(stage_name_arg: str) -> Type[Stage]:
         inline_kb_getter_arg=None,
         reply_kb_getter_arg=get_kb,
         invalid_value_text_arg="Ошибка",
-        filter_arg=PHOTO_FILTER,
+        message_filter_arg=PHOTO_FILTER,
     )
 
     class PhotoStage(Base):
@@ -57,7 +57,7 @@ def make_photo_stage(stage_name_arg: str) -> Type[Stage]:
             PhotoStage._logger.debug(
                 "%s added photo from telegram profile", actor_id)
 
-            return await go_next_stage(departure=PhotoStage, state=state)
+            return await PhotoStage.next_stage.prepare(state)
 
         @staticmethod
         def register(router: Router) -> None:

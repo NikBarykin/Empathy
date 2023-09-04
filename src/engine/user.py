@@ -54,7 +54,7 @@ async def submit_user(user: User, logger: Logger | None) -> None:
                 "Successfully submitted user %s", user)
     except IntegrityError as e:
         if logger is not None:
-            logger.error(e)
+            logger.info("user with id %s already exists", user.id)
 
 
 async def reset_metadata(user_id: int) -> None:

@@ -1,10 +1,13 @@
 """Managing keyboards"""
 from typing import Iterable
 
+from aiogram.types import (
+    ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, Message)
+from aiogram.methods import SendMessage, DeleteMessage
+
 from stage import Stage
 
-from aiogram.types import (
-    ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton)
+from utils.execute_method import execute_method
 
 
 class RowKeyboard(ReplyKeyboardMarkup):
@@ -40,14 +43,25 @@ def concat_reply_keyboards(
     )
 
 
-async def send_reply_kb(chat_id: int, kb: ReplyKeyboardMarkup):
-    message = await Stage.bot.send_message(
-        chat_id=chat_id, text="⚡️", reply_markup=kb)
+async def send_reply_kb(chat_id: int, kb: ReplyKeyboardMarkup) -> Message:
+    message = await execute_method(
+        SendMessage(
+            chat_id=chat_id, text="⚡️", reply_markup=kb)
+    )
     return message
 
 
-async def remove_reply_keyboard(chat_id: int):
-    message = await Stage.bot.send_message(
-        chat_id=chat_id, text=".", reply_markup=ReplyKeyboardRemove())
-    await Stage.bot.delete_message(
-        chat_id=chat_id, message_id=message.message_id)
+async def remove_reply_keyboard(chat_id: int) -> Message:
+    """
+        Send fake message with 'ReplyKeyboardRemove' and instantly delete it.
+        Return that fake message
+    """
+    message = await execute_method(
+        SendMessage(
+            chat_id=chat_id, text=".", reply_markup=ReplyKeyboardRemove())
+    )
+    await execute_method(
+        DeleteMessage(
+            chat_id=chat_id, message_id=message.message_id)
+    )
+    return message

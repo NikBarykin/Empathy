@@ -30,3 +30,8 @@ async def execute_method(
         )
         if logger is not None:
             logger.info("User %s blocked a bot: %s", user_id, e)
+    except Exception as e:
+        # unexpected exception
+        if logger is not None:
+            logger.error(
+                "Unexpected error during method %s execution: %s", method, e)

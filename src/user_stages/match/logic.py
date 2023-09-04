@@ -6,7 +6,7 @@ from database.user import User
 
 from engine.user import get_user_by_id
 from engine.rating import check_mutual_sympathy
-from engine.score import score_partner
+from engine.score_partner import score_partner
 
 from user_stages.profile.send import send_profile
 
@@ -14,16 +14,16 @@ from .constants import get_match_text
 from .keyboard import get_query_kb
 
 
-async def send_partner(actor_id: int, partner: User):
+async def send_partner(actor_id: int, partner_id: int):
     kb = await get_query_kb(
         actor_id=actor_id,
-        target_id=partner.id,
+        target_id=partner_id,
         partner_score=await score_partner(
-            actor_id=actor_id, partner_id=partner.id),
+            actor_id=actor_id, partner_id=partner_id),
     )
     return await send_profile(
         chat_id=actor_id,
-        user=partner,
+        user_id=partner_id,
         reply_markup=kb,
     )
 

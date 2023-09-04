@@ -29,7 +29,7 @@ class ModerateStage(Stage):
         await ModerateStage.next_stage.prepare(state)
 
     @staticmethod
-    async def register(router: Router) -> None:
+    def register(router: Router) -> None:
         router.message.register(
             ModerateStage.process,
             ModeratorFilter(logger=ModerateStage.__logger)

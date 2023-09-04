@@ -46,7 +46,7 @@ class User(Base, CleanModel):
     @hybrid_property
     def registered(self) -> bool:
         REQUIRED_FIELDS = (
-            "name", "age", "sex", "city", "photo", "interests")
+            "name", "age", "sex", "city", "photo", "bio", "interests")
 
         result = True
         for fieldname in REQUIRED_FIELDS:

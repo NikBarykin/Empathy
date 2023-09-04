@@ -12,7 +12,7 @@ make_min_partner_age_stage = FieldStageMaker(
     inline_kb_getter_arg=None,
     reply_kb_getter_arg=None,
     invalid_value_text_arg=f"Возраст должен быть числом, не меньше {MIN_AGE}",
-    filter_arg=AgeFilter(),
+    message_filter_arg=AgeFilter(),
 )
 
 
@@ -23,5 +23,5 @@ make_max_partner_age_stage = FieldStageMaker(
     inline_kb_getter_arg=None,
     reply_kb_getter_arg=None,
     invalid_value_text_arg=f"Возраст должен быть числом, не меньше {MIN_AGE}",
-    filter_arg=AgeFilter(),
+    message_filter_arg=AgeFilter(),
 )

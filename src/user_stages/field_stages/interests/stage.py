@@ -8,8 +8,8 @@ from aiogram.fsm.state import State
 
 from engine.user import update_field, get_field
 
-from stage import Stage, go_next_stage
-from field_stage import FieldStageBase
+from stage import Stage
+from user_stages.field_stages.base import FieldStageBase
 
 from utils.id import get_id
 from utils.keyboard import send_reply_kb
@@ -121,7 +121,7 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
 
             await callback.answer()
 
-            return await go_next_stage(departure=InterestsStage, state=state)
+            return await InterestsStage.next_stage.prepare(state)
 
         @staticmethod
         def register(router: Router) -> None:

@@ -1,3 +1,6 @@
+from .message_value_getter import parse_city_name
+
+
 CITIES = (
    "москва",
    "санкт-петербург",
@@ -1098,3 +1101,5 @@ CITIES = (
    "ясный",
    "яхрома",
 )
+
+CITIES = tuple(parse_city_name(city) for city in CITIES)

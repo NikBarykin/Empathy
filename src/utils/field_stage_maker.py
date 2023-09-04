@@ -1,7 +1,7 @@
 from typing import Type
 from stage import Stage
 
-from field_stage import produce_field_stage
+from user_stages.field_stages.produce import produce_field_stage
 
 
 class FieldStageMaker:

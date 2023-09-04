@@ -1,4 +1,12 @@
-from utils.filters.text import TextFilter
+"""Filter messages containing text"""
+from aiogram.filters import BaseFilter
+from aiogram.types import Message
 
 
-BIO_FILTER = TextFilter()
+class BioFilter(BaseFilter):
+    @staticmethod
+    def valid_bio(bio: str) -> bool:
+        return True
+
+    async def __call__(self, message: Message) -> bool:
+        return message.text is not None and BioFilter.valid_bio(message.text)

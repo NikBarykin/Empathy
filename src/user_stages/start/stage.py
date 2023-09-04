@@ -1,15 +1,13 @@
 from logging import Logger
-from typing import Optional
+from typing import Type
 
-from aiogram import Bot, Router, types
+from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State
+# from aiogram.fsm.state import State
 
-from sqlalchemy import select
-
-from stage import Stage, go_stage
+from stage import Stage
 
 from database.user import User
 
@@ -18,7 +16,7 @@ from engine.user import submit_user, reset_metadata
 from utils.logger import create_logger
 from utils.restart_state import restart_state
 
-from user_stages.config.declarations.forward_stages import FORWARD_STAGES
+from user_stages.field_stages.base import FieldStageBase
 
 from .constants import COMMAND_DESCRIPTION
 
@@ -35,8 +33,8 @@ class StartStage(Stage):
 
     @staticmethod
     async def __find_first_uncompleted_stage(state: FSMContext):
-        result = StartStage.next_stage
-        while result in FORWARD_STAGES and await result.check_field_already_presented(state):
+        result: Type[Stage] = StartStage.next_stage
+        while issubclass(result, FieldStageBase) and await result.check_field_already_presented(state):
             result = result.next_stage
         return result
 

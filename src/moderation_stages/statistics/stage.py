@@ -22,7 +22,7 @@ class StatisticsStage(Stage):
         await Stage.bot(
             SendMessage(
                 chat_id=await get_id(state),
-                text=f"Кол-во пользователей {count_users()}",
+                text=f"Кол-во пользователей {await count_users()}",
             )
         )
 

@@ -13,5 +13,5 @@ make_sex_stage = FieldStageMaker(
     inline_kb_getter_arg=None,
     reply_kb_getter_arg=get_kb,
     invalid_value_text_arg=f"Допустимые значения: {SEXES}",
-    filter_arg=ChoiceLowerFilter(alternatives=SEXES),
+    message_filter_arg=ChoiceLowerFilter(alternatives=SEXES),
 )

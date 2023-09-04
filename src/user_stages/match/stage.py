@@ -1,5 +1,5 @@
 """Main matchings stage in bot"""
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
@@ -7,21 +7,20 @@ from aiogram.filters.command import Command
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.methods import SendMessage
 
-from database.user import User
 from database.rating import Rating
 
 from utils.logger import create_logger
 from utils.id import get_id
 from utils.keyboard import remove_reply_keyboard
 from utils.execute_method import execute_method
+from utils.order import make_stage_jumper
 
 from engine.search import find_partner_for
 # TODO:
 # from engine.score import get_relationship_score
-from engine.rating import submit_rating, check_mutual_sympathy
-from engine.user import get_user_by_id
+from engine.rating import submit_rating
 
-from stage import Stage, go_stage
+from stage import Stage
 from user_stages.profile.send import send_profile
 from user_stages.profile import ProfileStage
 
@@ -34,6 +33,7 @@ from .waiting_pool import remove_from_waiting_pool, put_in_waiting_pool
 
 
 class MatchStage(Stage):
+    """The main stage where user rates (like/dislike) potential partners"""
     name: str = "Match-stage"
     __main_state = State(state=name)
     __prepare_state = State(state="prepare_" + name)
@@ -41,16 +41,16 @@ class MatchStage(Stage):
     __logger = create_logger(name)
 
     @staticmethod
-    async def send_partner(actor_id: int, partner: User):
+    async def send_partner(actor_id: int, partner_id: int) -> Message:
         kb = await get_query_kb(
             actor_id=actor_id,
-            target_id=partner.id,
+            target_id=partner_id,
             # TODO:
             partner_score=1,
         )
         return await send_profile(
             chat_id=actor_id,
-            user=partner,
+            user_id=partner_id,
             reply_markup=kb,
         )
 
@@ -78,12 +78,12 @@ class MatchStage(Stage):
     @staticmethod
     async def __process_found_partner(
         actor_id: int,
-        target: User,
+        target_id: int,
         state: FSMContext,
     ):
         MatchStage.__logger.info(
             "Found a partner %s for %s",
-            target,
+            target_id,
             actor_id,
         )
 
@@ -92,15 +92,16 @@ class MatchStage(Stage):
 
         try:
             # TODO: check
-            result = await send_partner(actor_id=actor_id, partner=target)
+            result = await send_partner(
+                actor_id=actor_id, partner_id=target_id)
         except TelegramBadRequest as e:
             MatchStage.__logger.warning(
-                "Partner %s was ignored, because his photo expired: %s", target, e)
+                "Partner %s was ignored, because his photo expired: %s", target_id, e)
             await submit_rating(
                 Rating(
                     liked=False,
                     actor_id=actor_id,
-                    target_id=target.id,
+                    target_id=target_id,
                 ),
                 logger=MatchStage.__logger,
             )
@@ -118,13 +119,12 @@ class MatchStage(Stage):
 
         actor_id: int = await get_id(state)
 
-        target: User | None = await find_partner_for(actor_id)
+        target_id: int | None = await find_partner_for(actor_id)
 
-        if target is None:
+        if target_id is None:
             return await MatchStage.__process_no_partner(actor_id, state)
-        else:
-            return await MatchStage.__process_found_partner(
-                actor_id, target, state)
+        return await MatchStage.__process_found_partner(
+            actor_id, target_id, state)
 
     @staticmethod
     async def process_rating(
@@ -158,15 +158,6 @@ class MatchStage(Stage):
         await MatchStage.prepare(state)
 
     @staticmethod
-    async def process_go_profile(_: Message, state: FSMContext):
-        """Process go to profile-stage"""
-        return await go_stage(
-            departure=MatchStage,
-            destination=ProfileStage,
-            state=state,
-        )
-
-    @staticmethod
     def register(router: Router) -> None:
         router.callback_query.register(
             MatchStage.process_rating,
@@ -175,7 +166,7 @@ class MatchStage(Stage):
         )
 
         router.message.register(
-            MatchStage.process_go_profile,
+            make_stage_jumper(target_stage=ProfileStage),
             Command(ProfileStage.name),
             MatchStage.__main_state,
         )

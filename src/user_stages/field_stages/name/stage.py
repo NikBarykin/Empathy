@@ -12,5 +12,5 @@ make_name_stage = FieldStageMaker(
     inline_kb_getter_arg=None,
     reply_kb_getter_arg=get_kb,
     invalid_value_text_arg="Имя должно состоять из букв, символа '-' и пробела",
-    filter_arg=NameFilter(),
+    message_filter_arg=NameFilter(),
 )

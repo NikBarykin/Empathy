@@ -2,10 +2,12 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.command import Command
+from aiogram.methods import SendMessage
 
 from stage import Stage
 
 from utils.id import get_id
+from utils.execute_method import execute_method
 
 
 RULES: str = """Правила:
@@ -25,14 +27,16 @@ class RulesStage(Stage):
 
     @staticmethod
     async def process(_: Message, state: FSMContext):
-        return Stage.bot.send_message(
-            chat_id=await get_id(state),
-            text=RULES,
+        return await execute_method(
+            SendMessage(
+                chat_id=await get_id(state),
+                text=RULES,
+            )
         )
 
     @staticmethod
     def register(router: Router):
         router.message.register(
-            RulesStage.prepare,
+            RulesStage.process,
             Command(RulesStage.name),
         )

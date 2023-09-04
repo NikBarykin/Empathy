@@ -11,7 +11,8 @@ from database.user import User
 
 from engine.user import (
     get_user_by_id_with_session, update_field, get_user_by_id)
-from engine.eligibility import partner_eligibility_expr
+from expressions.eligibility import relationship_eligibility_expr
+from expressions.rated import rated_expr
 
 from stage import Stage
 from .logic import send_partner
@@ -28,9 +29,8 @@ async def notify_waiting_pool(new_user_id: int, logger: Logger) -> None:
         stmt = (
             select(User.id)
             .where(User.in_waiting_pool)
-            .where(~User.frozen)
-            .where(~User.blocked_bot)
-            .where(partner_eligibility_expr(actor=User, target=new_user))
+            .where(~rated_expr(actor=User, target=new_user))
+            .where(relationship_eligibility_expr(User, new_user))
         )
 
         target_ids = (await session.scalars(stmt)).all()
@@ -42,9 +42,9 @@ async def notify_waiting_pool(new_user_id: int, logger: Logger) -> None:
                 "%s was already notified, so there is no need to notify him again", target)
             continue
 
-        await put_in_waiting_pool(target_id, logger=logger)
+        await remove_from_waiting_pool(target_id, logger=logger)
 
-        await send_partner(actor_id=target_id, partner=new_user)
+        await send_partner(actor_id=target_id, partner_id=new_user.id)
 
         logger.debug("%s was notified about %s", target, new_user)
 

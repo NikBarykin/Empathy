@@ -4,7 +4,7 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 
-from stage import Stage, go_next_stage
+from stage import Stage
 
 from utils.logger import create_logger
 from utils.id import get_id
@@ -20,7 +20,7 @@ from .keyboard import QUERY_KB
 
 
 class FreezeStage(Stage):
-    name: str = "freeze-stage"
+    name: str = "❄️Заморозить анкету❄️"
     __main_state = State()
     __prepare_state = State("prepare")
     __logger = create_logger(name)
@@ -47,8 +47,7 @@ class FreezeStage(Stage):
         user_id: int = await get_id(state)
         await unfreeze_user(user_id, logger=FreezeStage.__logger)
         await message.answer(text=SUCCESS_UNFREEZE_TEXT)
-        return await go_next_stage(
-            departure=FreezeStage, state=state)
+        return await FreezeStage.next_stage.prepare(state)
 
     @staticmethod
     def register(router: Router) -> None:

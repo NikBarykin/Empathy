@@ -1,18 +1,17 @@
 from typing import List, Type
 
 from aiogram import F, Router
-from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
+from aiogram.methods import SendPhoto, SendMessage
 
 from stage import Stage
 
 from utils.id import get_id
-from utils.prev_stage import (
-    send_prev_stage_keyboard,
-    make_prev_stage_processor,
-    PREV_STAGE_FILTER,
-)
+from utils.keyboard import RowKeyboard, send_reply_kb
+from utils.order import make_stage_jumper
+from utils.execute_method import execute_method
+from utils.prev_stage import PREV_STAGE_TEXT
 
 from .base import ForkStageBase
 from .alternatives_keyboard import get_keyboard_for_alternatives
@@ -20,35 +19,85 @@ from .alternatives_keyboard import get_keyboard_for_alternatives
 
 def produce_fork_stage(
     stage_name_arg: str,
-    question_text_arg: str,
+    question_text_getter_arg,
+    prev_stage_button_text_arg: str=PREV_STAGE_TEXT,
+    question_photo_getter_arg=None,
+    description_arg: str="",
 ) -> Type[ForkStageBase]:
     """Fancy function to produce fork-stages with comfort"""
     class ForkStage(ForkStageBase):
         name: str = stage_name_arg
-        question_text: str= question_text_arg
+        question_text_getter = question_text_getter_arg
+        prev_stage_button_text = prev_stage_button_text_arg
+        question_photo_getter = question_photo_getter_arg
+        description: str = description_arg
         alternatives: List[Type[Stage]] = []
 
         __main_state = State(state="main_" + name)
         __prepare_state = State(state="prepare_" + name)
 
         @staticmethod
-        async def add_alternative(alternative: Type[Stage]) -> None:
+        def add_alternative(alternative: Type[Stage]) -> None:
             ForkStage.alternatives.append(alternative)
 
         @staticmethod
+        async def get_question_text(user_id: int) -> str:
+            if isinstance(ForkStage.question_text_getter, str):
+                return ForkStage.question_text_getter
+            return await ForkStage.question_text_getter(user_id)
+
+        @staticmethod
+        async def get_question_photo(user_id: int) -> None | str:
+            """Get question-photo using 'user_id' and ForkStage.question_photo_getter"""
+            if ForkStage.question_photo_getter is None:
+                return None
+            elif isinstance(ForkStage.question_photo_getter, str):
+                return ForkStage.question_photo_getter
+            return await ForkStage.question_photo_getter(user_id)
+
+        @staticmethod
+        async def _create_method(user_id: int) -> SendPhoto | SendMessage:
+            """
+                Create telegram-api-method to be executed.
+                Return SendPhoto if there is a question_photo and SendMessage otherwise.
+            """
+            question_text: str = await ForkStage.get_question_text(user_id)
+            question_photo: str | None = await ForkStage.get_question_photo(user_id)
+            reply_markup = get_keyboard_for_alternatives(ForkStage.alternatives)
+
+            if question_photo is not None:
+                return SendPhoto(
+                    chat_id=user_id,
+                    photo=question_photo,
+                    caption=question_text,
+                    reply_markup=reply_markup,
+                )
+            else:
+                return SendMessage(
+                    chat_id=user_id,
+                    text=question_text,
+                    reply_markup=reply_markup,
+                )
+
+        @staticmethod
         async def prepare(state: FSMContext):
+            """Send a question-message with alternatives"""
             await state.set_state(ForkStage.__prepare_state)
 
             user_id: int = await get_id(state)
 
             if ForkStage.prev_stage is not None:
-                await send_prev_stage_keyboard(user_id)
+                # send prev-stage kb
+                await send_reply_kb(
+                    chat_id=user_id,
+                    kb=RowKeyboard(ForkStage.prev_stage_button_text),
+                )
 
-            result = await Stage.bot.send_message(
-                chat_id=user_id,
-                text=ForkStage.question_text,
-                reply_markup=get_keyboard_for_alternatives(ForkStage.alternatives),
-            )
+            # create telegram-method
+            method = await ForkStage._create_method(user_id)
+
+            # execute method
+            result = await execute_method(method)
 
             await state.set_state(ForkStage.__main_state)
 
@@ -59,9 +108,9 @@ def produce_fork_stage(
             """Register ForkStage-processors"""
             if ForkStage.prev_stage is not None:
                 router.message.register(
-                    make_prev_stage_processor(ForkStage),
+                    make_stage_jumper(target_stage=ForkStage.prev_stage),
                     ForkStage.__main_state,
-                    PREV_STAGE_FILTER,
+                    F.text==ForkStage.prev_stage_button_text,
                 )
 
             for stage in ForkStage.alternatives:
