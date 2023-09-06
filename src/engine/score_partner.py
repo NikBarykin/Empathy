@@ -1,6 +1,6 @@
-from database.user import User
-
 from sqlalchemy import select
+
+from database.user import User
 
 from stage import Stage
 

@@ -1,10 +1,9 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 
 from utils.id import get_id
 from utils.keyboard import RowKeyboard
 
-from .constants import USE_BIO_FROM_TELEGRAM_TEXT
 from .filter import BioFilter
 from .logic import get_bio_from_telegram
 

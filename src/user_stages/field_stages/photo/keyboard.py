@@ -8,6 +8,7 @@ from .constants import ADD_PROFILE_PHOTO_TEXT
 
 
 async def has_profile_photo(state: FSMContext) -> bool:
+    """Check if user has photos in his telegram-profile"""
     photos = (await Stage.bot.get_user_profile_photos(
         await get_id(state), offset=0, limit=1)).photos
     return len(photos) > 0

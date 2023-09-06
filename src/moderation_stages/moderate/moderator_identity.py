@@ -24,6 +24,6 @@ class ModeratorIdentity:
         if user_id != self.id:
             # Intruder
             logger.warning(
-                "%s tried to start moderating with token %s", user_id, self.token)
+                "%s tried to start moderating with someone else's token %s", user_id, self.token)
             return False
         return True

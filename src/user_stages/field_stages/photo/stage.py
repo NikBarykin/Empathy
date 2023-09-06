@@ -1,11 +1,10 @@
 from typing import Type
 
-from stage import Stage
-
-from aiogram import types, Router, F
+from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardMarkup
 
+from stage import Stage
 
 from engine.user import update_field
 
@@ -36,7 +35,11 @@ def make_photo_stage(stage_name_arg: str) -> Type[Stage]:
         async def process_profile_photo(
             message: Message,
             state: FSMContext,
-        ):
+        ) -> Message:
+            """
+                Use photo from user's telegram-account.
+                Return next-stage prepare-result.
+            """
             profile_photos = (
                     await message.from_user.get_profile_photos(
                         offset=0,

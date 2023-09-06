@@ -1,32 +1,28 @@
-import logging
-
+from __future__ import annotations
+from typing import Type
 from aiogram import Bot, Router
 from aiogram.fsm.state import StatesGroup
 from aiogram.fsm.context import FSMContext
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
-from typing import Type
-
 
 class Stage(StatesGroup):
     """Basic class for 'stage' in EmpathyBot"""
     name: str = None
+    """Stage's name"""
 
+    # global variables
     bot: Bot = None
     async_session: async_sessionmaker[AsyncSession] = None
 
-    next_stage = None
+    next_stage: Type[Stage] = None
 
-    prev_stage = None
+    prev_stage: Type[Stage] = None
     """
         The stage where we got here from,
         states automatically in 'go_stage' call
     """
-
-#     # this attribute is common for every stage
-#     # because it has to be specified in 'order-section' and not in some 'stage-section'
-#     allow_go_back: bool = True
 
     @staticmethod
     async def prepare(state: FSMContext) -> None:

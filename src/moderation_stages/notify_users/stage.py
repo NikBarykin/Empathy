@@ -6,14 +6,14 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
-from aiogram.methods import SendMessage, CopyMessage
+from aiogram.methods import SendMessage
 
 from database.user import User
 
 from utils.id import get_id
 from utils.execute_method import execute_method
 from utils.prev_stage import (
-    PREV_STAGE_KB, make_prev_stage_processor, PREV_STAGE_FILTER)
+    PREV_STAGE_KB, PREV_STAGE_FILTER)
 from utils.keyboard import RowKeyboard
 from utils.order import make_stage_jumper
 from utils.logger import create_logger
@@ -34,6 +34,7 @@ class NotifyUsersStage(Stage):
 
     @staticmethod
     async def prepare(state: FSMContext) -> Message:
+        """Ask moderator which message to user to notify users"""
         await state.set_state(NotifyUsersStage.__prepare_state)
 
         user_id: int = await get_id(state)
@@ -55,7 +56,7 @@ class NotifyUsersStage(Stage):
     async def process_message(message: Message, state: FSMContext) -> Message:
         """
             Save received message.
-            Show it to user and ensure that it is a right message.
+            Show it to moderator and ensure that it is a right message.
             Return message with insurance.
         """
         await state.set_state(NotifyUsersStage.__handling_message_state)
@@ -107,6 +108,8 @@ class NotifyUsersStage(Stage):
             message_id=(await state.get_data())['notify_message_id'],
             logger=NotifyUsersStage.__logger,
         )
+
+        NotifyUsersStage.__logger.info("Notified user's successfully")
 
         return await NotifyUsersStage.next_stage.prepare(state)
 

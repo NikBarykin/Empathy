@@ -1,7 +1,10 @@
 """Logic for match-stage"""
 from logging import Logger
 
-from stage import Stage
+from aiogram.types import Message
+from aiogram.methods import SendPhoto
+
+from utils.execute_method import execute_method
 from database.user import User
 
 from engine.user import get_user_by_id
@@ -14,7 +17,12 @@ from .constants import get_match_text
 from .keyboard import get_query_kb
 
 
-async def send_partner(actor_id: int, partner_id: int):
+async def send_partner(
+    actor_id: int,
+    partner_id: int,
+    logger: Logger | None = None,
+) -> Message | None:
+    """Return None if something went wrong"""
     kb = await get_query_kb(
         actor_id=actor_id,
         target_id=partner_id,
@@ -25,20 +33,23 @@ async def send_partner(actor_id: int, partner_id: int):
         chat_id=actor_id,
         user_id=partner_id,
         reply_markup=kb,
+        logger=logger,
     )
 
 
 async def send_match_profile(
     profile_owner_id: int,
     profile_receiver_id: int
-) -> None:
-    """Send a notification that match happened"""
+) -> Message:
+    """Send a notification that match happened. Return message with notification."""
     owner: User = await get_user_by_id(id=profile_owner_id)
-    await Stage.bot.send_photo(
-        chat_id=profile_receiver_id,
-        photo=owner.photo,
-        caption=get_match_text(owner.id, owner.name),
-        parse_mode="MarkdownV2",
+    return await execute_method(
+        SendPhoto(
+            chat_id=profile_receiver_id,
+            photo=owner.photo,
+            caption=get_match_text(owner.id, owner.name),
+            parse_mode="MarkdownV2",
+        )
     )
 
 

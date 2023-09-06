@@ -3,6 +3,8 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
+from .constants import MAX_NAME_LEN
+
 
 class NameFilter(BaseFilter):
     @staticmethod
@@ -20,7 +22,7 @@ class NameFilter(BaseFilter):
     def check(name: str) -> bool:
         """Check username"""
         return (
-            len(name) <= 64
+            len(name) <= MAX_NAME_LEN
             and
             all(map(NameFilter.check_char, name))
         )

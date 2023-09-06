@@ -1,12 +1,11 @@
 """A rating that users create for each other"""
-from .base import Base
-from .user import User
-
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
+
+from .base import Base
+from .user import User
 
 
 class Rating(Base):

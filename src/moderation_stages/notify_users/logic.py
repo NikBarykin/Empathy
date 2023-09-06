@@ -10,7 +10,7 @@ async def notify_users(
     user_ids: Iterable[int],
     from_chat_id: int,
     message_id: int,
-    logger: Logger | None=None,
+    logger: Logger | None = None,
 ) -> None:
     """
         Copy message from chat 'from_chat_id' with id 'message_id' to users with 'user_ids'.

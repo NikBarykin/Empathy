@@ -15,8 +15,6 @@ class User(Base, CleanModel):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
-    # TODO: get reed of
-    # telegram_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     # get reed of magic number '32'
     name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     age: Mapped[Optional[int]]
@@ -24,11 +22,11 @@ class User(Base, CleanModel):
     sex: Mapped[Optional[str]]
     city: Mapped[Optional[str]]
     photo: Mapped[Optional[str]]
+    bio: Mapped[Optional[str]]
     interests: Mapped[Optional[List[str]]] = mapped_column(
-        ARRAY(String(32)), nullable=True)
+        ARRAY(String(64)), nullable=True)
 
     relationship_goal: Mapped[Optional[str]]
-    bio: Mapped[Optional[str]]
 
     # TODO: MIN_AGE, MAX_AGE constants
     min_partner_age: Mapped[int] = mapped_column(sa.Integer, default=0)
@@ -64,5 +62,9 @@ class User(Base, CleanModel):
             "id={0.id}, "
             "age={0.age}, "
             "sex={0.sex}, "
+            "city={0.city}, "
+            "photo={0.photo}, "
+            "bio={0.bio}, "
+            "interests={0.interests}, "
             ")>"
         ).format(self)

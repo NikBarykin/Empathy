@@ -5,6 +5,7 @@ from aiogram.types import Message
 
 
 class ChoiceLowerFilter(BaseFilter):
+    """Check that user choosen one of alternatives"""
     def __init__(self, alternatives):
         self.alternatives = alternatives
 

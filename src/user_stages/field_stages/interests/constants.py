@@ -2,7 +2,7 @@ MIN_NO_INTERESTS: int = 3
 
 QUESTION_TEXT: str = f"Отметь свои интересы (минимум {MIN_NO_INTERESTS})"
 
-SUBMIT_TEXT: str = "Подтвердить"
+SUBMIT_TEXT: str = "🚀Подтвердить🚀"
 
 CHECK_TEXT: str = "✅"
 
@@ -76,4 +76,11 @@ INTERESTS = [
     'Twitch',
     'программирование',
     'TikTok',
+]
+
+
+# checked versions
+INTERESTS_CHECKED_VERSIONS = [
+    CHECK_TEXT + interest + CHECK_TEXT
+    for interest in INTERESTS
 ]

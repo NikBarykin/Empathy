@@ -34,6 +34,7 @@ async def update_field(
     async with Stage.async_session() as session:
         user = await get_user_by_id_with_session(id=id, session=session)
         async with session.begin():
+            # TODO: process AttributeError
             setattr(user, field_name, value)
 
 
@@ -64,3 +65,4 @@ async def reset_metadata(user_id: int) -> None:
         async with session.begin():
             user.frozen = False
             user.blocked_bot = False
+            user.in_waiting_pool=False

@@ -1,5 +1,5 @@
 """Search for a best partner"""
-from sqlalchemy import select
+from sqlalchemy import select, desc
 
 from stage import Stage
 from database.user import User
@@ -25,7 +25,7 @@ async def find_partner_for(actor_id: int) -> int | None:
             select(User.id)
             .where(relationship_eligibility_expr(actor, User))
             .where(~rated_expr(actor, User))
-            .order_by(partner_score_expr(actor, User))
+            .order_by(desc(partner_score_expr(actor, User)))
         )
 
         result = await session.execute(stmt.limit(1))

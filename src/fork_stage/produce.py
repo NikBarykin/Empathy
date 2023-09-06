@@ -1,6 +1,7 @@
 from typing import List, Type
 
 from aiogram import F, Router
+from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.methods import SendPhoto, SendMessage
@@ -80,7 +81,7 @@ def produce_fork_stage(
                 )
 
         @staticmethod
-        async def prepare(state: FSMContext):
+        async def prepare(state: FSMContext) -> Message:
             """Send a question-message with alternatives"""
             await state.set_state(ForkStage.__prepare_state)
 

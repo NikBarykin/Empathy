@@ -2,7 +2,8 @@
 from typing import List, Type
 
 from aiogram import Router
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
+from aiogram.methods import SendMessage, EditMessageText
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 
@@ -13,7 +14,9 @@ from user_stages.field_stages.base import FieldStageBase
 
 from utils.id import get_id
 from utils.keyboard import send_reply_kb
-from utils.prev_stage import PREV_STAGE_KB, make_prev_stage_processor, PREV_STAGE_FILTER
+from utils.prev_stage import PREV_STAGE_KB, PREV_STAGE_FILTER
+from utils.execute_method import execute_method
+from utils.order import make_stage_jumper
 
 from .callback_factory import (
     CheckInterestCallbackFactory, SubmitCallbackFactory)
@@ -46,7 +49,7 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
             return field_value is not None
 
         @staticmethod
-        async def prepare(state: FSMContext):
+        async def prepare(state: FSMContext) -> Message:
             await state.set_state(InterestsStage.__prepare_state)
 
             user_id: int = await get_id(state)
@@ -57,12 +60,15 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
             await state.update_data(
                 **{InterestsStage.field_name: checked_interests})
 
-            await send_reply_kb(chat_id=user_id, kb=PREV_STAGE_KB)
+            if InterestsStage.prev_stage is not None:
+                await send_reply_kb(chat_id=user_id, kb=PREV_STAGE_KB)
 
-            result = await Stage.bot.send_message(
-                chat_id=user_id,
-                text=QUESTION_TEXT,
-                reply_markup=get_question_kb(checked_interests),
+            result = await execute_method(
+                SendMessage(
+                    chat_id=user_id,
+                    text=QUESTION_TEXT,
+                    reply_markup=get_question_kb(checked_interests),
+                )
             )
 
             await state.set_state(InterestsStage.__main_state)
@@ -74,8 +80,11 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
             callback: CallbackQuery,
             callback_data: CheckInterestCallbackFactory,
             state: FSMContext,
-        ):
-            """Add or remove a user's interest"""
+        ) -> Message:
+            """
+                Add or remove a user's interest.
+                Return new version of question message.
+            """
             checked_interests: str = await InterestsStage.__get_checked_interests(state)
             target_interest: str = callback_data.interest
 
@@ -87,9 +96,13 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
             await state.update_data(interests=checked_interests)
 
             # TODO: handle exception (it can throw smt like SAME_MARKUP_ERROR)
-            result = await callback.message.edit_text(
-                text=QUESTION_TEXT,
-                reply_markup=get_question_kb(checked_interests),
+            result = await execute_method(
+                EditMessageText(
+                    chat_id=callback.message.chat.id,
+                    message_id=callback.message.message_id,
+                    text=QUESTION_TEXT,
+                    reply_markup=get_question_kb(checked_interests),
+                )
             )
 
             await callback.answer()
@@ -100,7 +113,7 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
         async def process_submit(
             callback: CallbackQuery,
             state: FSMContext,
-        ):
+        ) -> Message:
             """Submit user's interests and go to next stage"""
             checked_interests: str = await InterestsStage.__get_checked_interests(state)
 
@@ -114,9 +127,13 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
                 value=checked_interests,
             )
 
-            await callback.message.edit_text(
-                text=SUBMIT_TEXT,
-                reply_markup=get_submit_kb(checked_interests),
+            await execute_method(
+                EditMessageText(
+                    chat_id=callback.message.chat.id,
+                    message_id=callback.message.message_id,
+                    text=SUBMIT_TEXT,
+                    reply_markup=get_submit_kb(checked_interests),
+                )
             )
 
             await callback.answer()
@@ -127,7 +144,7 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
         def register(router: Router) -> None:
             if InterestsStage.prev_stage is not None:
                 router.message.register(
-                    make_prev_stage_processor(InterestsStage),
+                    make_stage_jumper(target_stage=InterestsStage.prev_stage),
                     InterestsStage.__main_state,
                     PREV_STAGE_FILTER,
                 )

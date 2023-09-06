@@ -1,4 +1,5 @@
 """Managing keyboards"""
+from logging import Logger
 from typing import Iterable
 
 from aiogram.types import (
@@ -43,25 +44,35 @@ def concat_reply_keyboards(
     )
 
 
-async def send_reply_kb(chat_id: int, kb: ReplyKeyboardMarkup) -> Message:
+async def send_reply_kb(
+    chat_id: int,
+    kb: ReplyKeyboardMarkup,
+    logger: Logger | None = None,
+) -> Message:
     message = await execute_method(
         SendMessage(
-            chat_id=chat_id, text="⚡️", reply_markup=kb)
+            chat_id=chat_id, text="⚙️", reply_markup=kb),
+        logger=logger,
     )
     return message
 
 
-async def remove_reply_keyboard(chat_id: int) -> Message:
+async def remove_reply_keyboard(
+    chat_id: int,
+    logger: Logger | None = None,
+) -> Message:
     """
         Send fake message with 'ReplyKeyboardRemove' and instantly delete it.
         Return that fake message
     """
     message = await execute_method(
         SendMessage(
-            chat_id=chat_id, text=".", reply_markup=ReplyKeyboardRemove())
+            chat_id=chat_id, text=".", reply_markup=ReplyKeyboardRemove()),
+        logger=logger,
     )
     await execute_method(
         DeleteMessage(
-            chat_id=chat_id, message_id=message.message_id)
+            chat_id=chat_id, message_id=message.message_id),
+        logger=logger,
     )
     return message

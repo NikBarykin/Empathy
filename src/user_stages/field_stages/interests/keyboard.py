@@ -8,18 +8,17 @@ from utils.dummy import DummyCallbackFactory
 
 from .callback_factory import (
     CheckInterestCallbackFactory, SubmitCallbackFactory)
-from .constants import INTERESTS, CHECK_TEXT, SUBMIT_TEXT
+from .constants import (
+    INTERESTS, CHECK_TEXT, SUBMIT_TEXT, INTERESTS_CHECKED_VERSIONS)
 
 
 def get_question_kb(checked_interests: Iterable[str]) -> InlineKeyboardMarkup:
     """Get keyboard for quering user's interests"""
     builder = InlineKeyboardBuilder()
 
-    for interest in INTERESTS:
-        text = interest
-        if interest in checked_interests:
-            # TODO: optimize by precalc checked versions
-            text = CHECK_TEXT + text + CHECK_TEXT
+    for i, interest in enumerate(INTERESTS):
+        text = (INTERESTS_CHECKED_VERSIONS[i] if interest in checked_interests
+                else interest)
         builder.button(
             text=text,
             callback_data=CheckInterestCallbackFactory(interest=interest),
@@ -42,8 +41,7 @@ def get_submit_kb(checked_interests: Iterable[str]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton
-                (
+                InlineKeyboardButton(
                     text=CHECK_TEXT + interest + CHECK_TEXT,
                     callback_data=DummyCallbackFactory().pack(),
                 )

@@ -1,4 +1,5 @@
 from aiogram import Router
+from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.methods import SendMessage
@@ -16,7 +17,8 @@ class StatisticsStage(Stage):
     __prepare_state = State("prepare_" + name)
 
     @staticmethod
-    async def prepare(state: FSMContext):
+    async def prepare(state: FSMContext) -> Message:
+        """Show statistics to moderator and proceed to the next stage"""
         await state.set_state(StatisticsStage.__prepare_state)
 
         await Stage.bot(
@@ -30,4 +32,4 @@ class StatisticsStage(Stage):
 
     @staticmethod
     def register(router: Router) -> None:
-        """There is nothing to process"""
+        """There is nothing to register"""

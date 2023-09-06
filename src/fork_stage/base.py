@@ -30,7 +30,6 @@ class ForkStageBase(Stage):
             Add new alternative
             (should be implemented in derived classes)
         """
-        pass
 
     @staticmethod
     def make_processor(destination_stage: Type[Stage]):

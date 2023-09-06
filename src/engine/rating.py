@@ -32,7 +32,7 @@ async def submit_rating(
     rating: Rating,
     logger: logging.Logger | None = None
 ) -> None:
-    """Inserts ratings into database"""
+    """Inserts rating into database"""
     try:
         async with Stage.async_session() as session:
             async with session.begin():

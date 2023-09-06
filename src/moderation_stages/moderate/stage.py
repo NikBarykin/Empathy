@@ -21,12 +21,12 @@ class ModerateStage(Stage):
         pass
 
     @staticmethod
-    async def process(message: Message, state: FSMContext):
+    async def process(message: Message, state: FSMContext) -> Message:
         user_id: int = message.from_user.id
         await restart_state(state=state, user_id=user_id)
         ModerateStage.__logger.info("%s started moderating", user_id)
         await message.answer("Ты успешно вошел в режим модератора")
-        await ModerateStage.next_stage.prepare(state)
+        return await ModerateStage.next_stage.prepare(state)
 
     @staticmethod
     def register(router: Router) -> None:

@@ -1,5 +1,6 @@
 """Send user's profile to some chat"""
-from aiogram.types import InlineKeyboardMarkup
+from logging import Logger
+from aiogram.types import InlineKeyboardMarkup, Message
 from aiogram.methods import SendPhoto
 
 from utils.execute_method import execute_method
@@ -24,7 +25,13 @@ async def send_profile(
     chat_id: int,
     user_id: int,
     reply_markup: InlineKeyboardMarkup | None = None,
-):
-    """Send profile of 'user_id' to 'chat_id' and attach 'reply_markup' to it"""
+    logger: Logger | None = None,
+) -> Message | None:
+    """
+        Send profile of 'user_id' to 'chat_id' and attach 'reply_markup' to it.
+        Return message that was sent if everything is OK and None otherwise.
+    """
     return await execute_method(
-        await make_send_profile_method(chat_id, user_id, reply_markup))
+        await make_send_profile_method(chat_id, user_id, reply_markup),
+        logger=logger,
+    )

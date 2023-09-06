@@ -1,7 +1,6 @@
 from typing import Type, List
-from stage import Stage
-
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from stage import Stage
 
 
 def get_keyboard_for_alternatives(

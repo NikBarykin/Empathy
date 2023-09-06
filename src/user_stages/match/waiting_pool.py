@@ -44,7 +44,7 @@ async def notify_waiting_pool(new_user_id: int, logger: Logger) -> None:
 
         await remove_from_waiting_pool(target_id, logger=logger)
 
-        await send_partner(actor_id=target_id, partner_id=new_user.id)
+        await send_partner(actor_id=target_id, partner_id=new_user.id, logger=logger)
 
         logger.debug("%s was notified about %s", target, new_user)
 

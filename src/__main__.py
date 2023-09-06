@@ -7,8 +7,6 @@ from aiogram.loggers import event as event_logger
 # Stages
 from stage import Stage
 
-# TODO: move these imports to user_stages.config.imports
-
 # This import initializes user-stages
 from user_stages import config
 from moderation_stages import config

@@ -16,8 +16,8 @@ class FieldStageBase(Stage):
     prepare_text: str
     # TODO: rename
     value_getter: Callable[[Message], Awaitable[Any]]
-    inline_kb_getter: None | Callable[[FSMContext], Awaitable[InlineKeyboardMarkup]]
-    reply_kb_getter: None | Callable[[FSMContext], Awaitable[ReplyKeyboardMarkup]]
+    inline_kb_getter: None | InlineKeyboardMarkup | Callable[[FSMContext], Awaitable[InlineKeyboardMarkup]]
+    reply_kb_getter: None | ReplyKeyboardMarkup | Callable[[FSMContext], Awaitable[ReplyKeyboardMarkup]]
     invalid_value_text: str
     message_filter: BaseFilter
 

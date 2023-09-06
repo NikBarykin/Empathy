@@ -5,7 +5,7 @@ from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.command import Command
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.methods import SendMessage
+from aiogram.methods import SendMessage, EditMessageReplyMarkup
 
 from database.rating import Rating
 
@@ -21,12 +21,11 @@ from engine.search import find_partner_for
 from engine.rating import submit_rating
 
 from stage import Stage
-from user_stages.profile.send import send_profile
 from user_stages.profile import ProfileStage
 
 from .constants import PARTNERS_NOT_FOUND_TEXT
 
-from .keyboard import get_query_kb, get_rated_kb
+from .keyboard import get_rated_kb
 from .callback_factory import RatingCallbackFactory
 from .logic import send_partner, check_and_process_mutual_sympathy
 from .waiting_pool import remove_from_waiting_pool, put_in_waiting_pool
@@ -41,21 +40,8 @@ class MatchStage(Stage):
     __logger = create_logger(name)
 
     @staticmethod
-    async def send_partner(actor_id: int, partner_id: int) -> Message:
-        kb = await get_query_kb(
-            actor_id=actor_id,
-            target_id=partner_id,
-            # TODO:
-            partner_score=1,
-        )
-        return await send_profile(
-            chat_id=actor_id,
-            user_id=partner_id,
-            reply_markup=kb,
-        )
-
-    @staticmethod
     async def __process_no_partner(actor_id: int, state: FSMContext) -> Message | None:
+        """Process a situation when there is no partner for actor_id"""
         MatchStage.__logger.info(
             "Didn't find a partner for %s", actor_id)
 
@@ -68,7 +54,8 @@ class MatchStage(Stage):
                 chat_id=actor_id,
                 text=PARTNERS_NOT_FOUND_TEXT,
                 reply_markup=ReplyKeyboardRemove(),
-            )
+            ),
+            logger=MatchStage.__logger,
         )
 
         await state.set_state(MatchStage.__main_state)
@@ -80,7 +67,8 @@ class MatchStage(Stage):
         actor_id: int,
         target_id: int,
         state: FSMContext,
-    ):
+    ) -> Message:
+        """Found a partner 'target_id' for 'actor_id'"""
         MatchStage.__logger.info(
             "Found a partner %s for %s",
             target_id,
@@ -90,13 +78,16 @@ class MatchStage(Stage):
         await remove_from_waiting_pool(
             actor_id, logger=MatchStage.__logger)
 
-        try:
-            # TODO: check
-            result = await send_partner(
-                actor_id=actor_id, partner_id=target_id)
-        except TelegramBadRequest as e:
+        result: Message | None = await send_partner(
+            actor_id=actor_id,
+            partner_id=target_id,
+            logger=MatchStage.__logger,
+        )
+
+        if result is None:
+            # something wend wrong
             MatchStage.__logger.warning(
-                "Partner %s was ignored, because his photo expired: %s", target_id, e)
+                "Partner %s was ignored, because his photo expired or something else went wrong: %s", target_id, e)
             await submit_rating(
                 Rating(
                     liked=False,
@@ -115,6 +106,7 @@ class MatchStage(Stage):
 
     @staticmethod
     async def prepare(state: FSMContext):
+        """Search for a partner"""
         await state.set_state(MatchStage.__prepare_state)
 
         actor_id: int = await get_id(state)
@@ -131,12 +123,17 @@ class MatchStage(Stage):
         callback: CallbackQuery,
         callback_data: RatingCallbackFactory,
         state: FSMContext,
-    ) -> None:
+    ) -> Message:
         """Process when one user rated other user"""
         await state.set_state(MatchStage.__rating_state)
 
-        await callback.message.edit_reply_markup(
-            reply_markup=get_rated_kb(callback_data.liked),
+        await execute_method(
+            EditMessageReplyMarkup(
+                chat_id=callback.message.chat.id,
+                message_id=callback.message.message_id,
+                reply_markup=get_rated_kb(callback_data.liked),
+            ),
+            logger=MatchStage.__logger,
         )
 
         new_rating = Rating(

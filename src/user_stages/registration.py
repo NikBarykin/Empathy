@@ -21,8 +21,11 @@ class RegistrationStage(Stage):
     @staticmethod
     async def prepare(state: FSMContext):
         result = await RegistrationStage.next_stage.prepare(state)
+        user_id = await get_id(state)
         await notify_waiting_pool(
-            new_user_id=await get_id(state), logger=RegistrationStage.__logger)
+            new_user_id=user_id, logger=RegistrationStage.__logger)
+        RegistrationStage.__logger.info(
+            "User %s passed registration", user_id)
         return result
 
     @staticmethod
