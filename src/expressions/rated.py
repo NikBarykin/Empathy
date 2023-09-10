@@ -24,3 +24,17 @@ def rated_expr(
             sa.and_(Rating.actor_id==actor.id, liked_expr))
     else:
         raise ValueError(f"Bad types: {type(actor)}, {type(target)}")
+
+
+def liked_expr(
+    actor: User | Type[User],
+    target: Type[User] | User,
+) -> sa.SQLColumnExpression[bool]:
+    return rated_expr(actor, target, True)
+
+
+def disliked_expr(
+    actor: User | Type[User],
+    target: Type[User] | User,
+) -> sa.SQLColumnExpression[bool]:
+    return rated_expr(actor, target, False)
