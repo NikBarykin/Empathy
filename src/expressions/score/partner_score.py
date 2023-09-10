@@ -7,12 +7,14 @@ from database.user import User
 from .interests import InterestsSubexpr
 from .relationship_goal import RelationshipGoalSubexpr
 from .city import CitySubexpr
+from .liked import LikedSubexpr
 
 
 SUBEXPRS = (
     CitySubexpr,
     InterestsSubexpr,
     RelationshipGoalSubexpr,
+    LikedSubexpr,
 )
 
 
