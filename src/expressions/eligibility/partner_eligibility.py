@@ -29,4 +29,6 @@ def partner_eligibility_expr(
         sa.not_(target.blocked_bot)
         &
         (partner_score_expr(actor, target) >= 0)
+        &
+        sa.not_(actor.id==target.id)
     )

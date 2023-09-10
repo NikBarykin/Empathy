@@ -1,3 +1,5 @@
-RELATIONSHIP_GOALS = ("отношения", "общение")
+ROMANTIC_GOAL = "отношения"
+COMMUNICATION_GOAL = "общение"
+RELATIONSHIP_GOALS = (ROMANTIC_GOAL, COMMUNICATION_GOAL)
 QUERY_TEXT = "Твоя цель?"
 INVALID_VALUE_TEXT = f"Допустимые значения: {RELATIONSHIP_GOALS}"
