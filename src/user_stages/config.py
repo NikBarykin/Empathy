@@ -28,7 +28,7 @@ from user_stages.field_stages.age import (
 from user_stages.field_stages.relationship_goal import (
     make_relationship_goal_stage)
 
-from user_stages.rules import RulesStage
+from user_stages.info import InfoStage
 
 
 FIELD_STAGES = [
@@ -93,7 +93,7 @@ FreezeStage.next_stage = RegistrationStage
 USER_STAGES = (
     [
         StartStage,
-        RulesStage,
+        InfoStage,
     ]
     +
     FIELD_STAGES
@@ -111,3 +111,6 @@ USER_STAGES = (
     +
     UPDATE_EXTRA_STAGES
 )
+
+
+MENU_STAGES = [StartStage, ProfileStage, InfoStage]
