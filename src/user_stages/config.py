@@ -78,7 +78,7 @@ add_alternative_bydir(ProfileStage, UpdateExtraStage)
 UPDATE_EXTRA_STAGES = [
     make_min_partner_age_stage("Минимальный возраст партнера"),
     make_max_partner_age_stage("Максимальный возраст партнера"),
-    make_relationship_goal_stage("Цель отношений"),
+    make_relationship_goal_stage("Твоя цель"),
 ]
 
 for stage in UPDATE_EXTRA_STAGES:
