@@ -87,7 +87,7 @@ class MatchStage(Stage):
         if result is None:
             # something wend wrong
             MatchStage.__logger.warning(
-                "Partner %s was ignored, because his photo expired or something else went wrong: %s", target_id, e)
+                "Partner %s was ignored, because his photo expired or something else went wrong", target_id)
             await submit_rating(
                 Rating(
                     liked=False,

@@ -4,11 +4,13 @@ from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
                                     async_sessionmaker, create_async_engine)
 
+from .config import ECHO
+
 
 def construct_async_engine(url: URL | str) -> AsyncEngine:
     return create_async_engine(
         url,
-        echo=False,
+        echo=ECHO,
         # encoding='utf-8',
         pool_pre_ping=True,
     )

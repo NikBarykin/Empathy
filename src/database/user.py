@@ -38,7 +38,7 @@ class User(Base, CleanModel):
     blocked_bot: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     frozen: Mapped[bool] = mapped_column(sa.Boolean, default=False)
     verified: Mapped[bool] = mapped_column(sa.Boolean, default=False)
-    reported_cnt: Mapped[int] = mapped_column(sa.Boolean, default=0)
+    reported_cnt: Mapped[int] = mapped_column(sa.Integer, default=0)
 
     # TODO:
     @hybrid_property
