@@ -7,7 +7,7 @@ from .filter import NameFilter
 
 
 # TODO: move to name-logic or smth alike
-async def __get_first_name(user_id: int) -> str:
+async def __get_first_name(user_id: int) -> str | None:
     """Get first name section from user's telegram-account"""
     user_info = await Stage.bot.get_chat(user_id)
     return user_info.first_name
