@@ -1,39 +1,27 @@
 """Keyboards for interests stage"""
 from typing import Iterable
+from copy import deepcopy
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from utils.dummy import DummyCallbackFactory
 
-from .callback_factory import (
-    CheckInterestCallbackFactory, SubmitCallbackFactory)
 from .constants import (
-    INTERESTS, CHECK_TEXT, SUBMIT_TEXT, INTERESTS_CHECKED_VERSIONS)
+    INTERESTS, CHECK_TEXT,
+    INTERESTS_CHECKED_VERSIONS, NO_BUTTONS_IN_ROW, QUESTION_KB_TEMPLATE)
 
 
 def get_question_kb(checked_interests: Iterable[str]) -> InlineKeyboardMarkup:
     """Get keyboard for quering user's interests"""
-    builder = InlineKeyboardBuilder()
+    keyboard = deepcopy(QUESTION_KB_TEMPLATE)
 
     for i, interest in enumerate(INTERESTS):
-        text = (INTERESTS_CHECKED_VERSIONS[i] if interest in checked_interests
-                else interest)
-        builder.button(
-            text=text,
-            callback_data=CheckInterestCallbackFactory(interest=interest),
-        )
+        if interest in checked_interests:
+            row = i // NO_BUTTONS_IN_ROW
+            col = i % NO_BUTTONS_IN_ROW
+            keyboard.inline_keyboard[row][col].text = INTERESTS_CHECKED_VERSIONS[i]
 
-    builder.adjust(2)
-
-    builder.row(
-        InlineKeyboardButton(
-            text=SUBMIT_TEXT,
-            callback_data=SubmitCallbackFactory().pack(),
-        )
-    )
-
-    return builder.as_markup()
+    return keyboard
 
 
 def get_submit_kb(checked_interests: Iterable[str]) -> InlineKeyboardMarkup:
