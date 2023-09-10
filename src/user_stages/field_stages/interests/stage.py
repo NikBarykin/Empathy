@@ -80,7 +80,7 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
             callback: CallbackQuery,
             callback_data: CheckInterestCallbackFactory,
             state: FSMContext,
-        ) -> Message:
+        ) -> Message | None:
             """
                 Add or remove a user's interest.
                 Return new version of question message.
@@ -93,10 +93,7 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
             else:
                 checked_interests.append(target_interest)
 
-            await state.update_data(interests=checked_interests)
-
-            # TODO: handle exception (it can throw smt like SAME_MARKUP_ERROR)
-            result = await execute_method(
+            result: Message | None = await execute_method(
                 EditMessageText(
                     chat_id=callback.message.chat.id,
                     message_id=callback.message.message_id,
@@ -104,6 +101,10 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
                     reply_markup=get_question_kb(checked_interests),
                 )
             )
+
+            if result is not None:
+                # successfully edited keyboard
+                await state.update_data(interests=checked_interests)
 
             await callback.answer()
 
