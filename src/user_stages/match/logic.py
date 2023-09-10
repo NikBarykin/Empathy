@@ -3,6 +3,7 @@ from logging import Logger
 
 from aiogram.types import Message
 from aiogram.methods import SendPhoto
+from aiogram.enums.parse_mode import ParseMode
 
 from utils.execute_method import execute_method
 from database.user import User
@@ -48,7 +49,7 @@ async def send_match_profile(
             chat_id=profile_receiver_id,
             photo=owner.photo,
             caption=get_match_text(owner.id, owner.name),
-            parse_mode="MarkdownV2",
+            parse_mode=ParseMode.MARKDOWN_V2,
         )
     )
 
