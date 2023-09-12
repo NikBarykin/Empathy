@@ -16,11 +16,11 @@ async def __update_freeze_field(
 
 async def freeze_user(user_id: int, logger: Logger | None):
     result = await __update_freeze_field(user_id, True)
-    logger.debug("User %s was frozen successfully")
+    logger.debug("User %s was frozen successfully", user_id)
     return result
 
 
 async def unfreeze_user(user_id: int, logger: Logger | None):
     result = await __update_freeze_field(user_id, False)
-    logger.debug("User %s was unfrozen successfully")
+    logger.debug("User %s was unfrozen successfully", user_id)
     return result
