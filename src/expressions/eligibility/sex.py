@@ -8,9 +8,6 @@ def sex_expr(
     actor: User | Type[User],
     target: Type[User] | User,
 ) -> sa.SQLColumnExpression[bool]:
-    for i in range(100):
-        print(actor.relationship_goal)
-        print(target.relationship_goal)
     return sa.or_(
         # if bot users want to communicate (no romantic) we don't care about sex
         sa.and_(
