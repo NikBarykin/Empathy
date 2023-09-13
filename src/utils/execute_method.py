@@ -14,10 +14,14 @@ from engine.user import update_field
 
 
 async def execute_method(
-    method: TelegramMethod[Message],
+    method: TelegramMethod[Message] | TelegramMethod[bool],
     logger: Logger | None = None,
-) -> Message | None:
-    """Returns None if something went wrong"""
+) -> Message | bool | None:
+    """
+        Returns None if something went wrong.
+        Note: some methods (like DeleteMessage) return boolean
+        that symbolize success of the method execution.
+    """
     try:
         return await Stage.bot(method)
     except TelegramForbiddenError as e:
