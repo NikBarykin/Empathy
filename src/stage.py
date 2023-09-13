@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Type
-from aiogram import Bot, Router
+from aiogram import Bot, Router, Dispatcher
 from aiogram.fsm.state import StatesGroup
 from aiogram.fsm.context import FSMContext
 
@@ -15,6 +15,7 @@ class Stage(StatesGroup):
     # global variables
     bot: Bot = None
     async_session: async_sessionmaker[AsyncSession] = None
+    dp: Dispatcher = None
 
     next_stage: Type[Stage] = None
 
