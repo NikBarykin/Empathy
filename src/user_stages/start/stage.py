@@ -5,7 +5,7 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
-# from aiogram.fsm.state import State
+from aiogram.methods import SendMessage
 
 from stage import Stage
 
@@ -15,10 +15,16 @@ from engine.user import submit_user, reset_metadata
 
 from utils.logger import create_logger
 from utils.restart_state import restart_state
+from utils.execute_method import execute_method
 
 from user_stages.field_stages.base import FieldStageBase
 
-from .constants import COMMAND_DESCRIPTION
+from .constants import (
+    COMMAND_DESCRIPTION,
+    USER_HAS_PRIVATE_FORWARDS_TEXT,
+    USER_HAS_PRIVATE_FORWARDS_PARSE_MODE,
+)
+from .logic import user_has_private_forwards
 
 
 class StartStage(Stage):
@@ -48,14 +54,25 @@ class StartStage(Stage):
     async def process(
         message: Message,
         state: FSMContext,
-    ) -> None:
+    ):
         """
             Restarts bot, clears aiogram-state,
             updates some metadata in database, BUT doesn't remove user from database.
-            Skips stages that are already presented by user
+            Skips stages that are already presented by user.
+            Also check that user doesn't have private forwards.
         """
-        # TODO: process_state
         user_id = message.from_user.id
+
+        if await user_has_private_forwards(user_id):
+            return await execute_method(
+                SendMessage(
+                    chat_id=user_id,
+                    text=USER_HAS_PRIVATE_FORWARDS_TEXT,
+                    parse_mode=USER_HAS_PRIVATE_FORWARDS_PARSE_MODE,
+                )
+            )
+
+
         await submit_user(User(id=user_id), logger=StartStage.__logger)
         await reset_metadata(user_id=user_id)
 
