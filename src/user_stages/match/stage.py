@@ -98,7 +98,7 @@ class MatchStage(Stage):
             )
             return await MatchStage.prepare(state)
 
-        await remove_reply_keyboard(chat_id=actor_id)
+        # await remove_reply_keyboard(chat_id=actor_id)
 
         await state.set_state(MatchStage.__main_state)
 
