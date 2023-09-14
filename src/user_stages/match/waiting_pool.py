@@ -4,20 +4,45 @@
 """
 from logging import Logger
 
-from sqlalchemy import select
+from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
 
+from sqlalchemy import select
 
 from database.user import User
 
 from engine.user import (
-    get_user_by_id_with_session, update_field, get_user_by_id)
+    get_user_by_id_with_session, get_user_by_id)
 from expressions.eligibility import relationship_eligibility_expr
 from expressions.rated import rated_expr
 
-from stage import Stage
-from .logic import send_partner
+from utils.state import get_state_by_id
 
-# TODO: Bad situation: user is overwriting something and gets notified
+from stage import Stage
+
+from .waiting_pool_utils import remove_from_waiting_pool
+
+from .stage import MatchStage
+
+
+async def notify_user_about_partner(
+    actor_id: int,
+    partner_id: int,
+    logger: Logger,
+) -> Message | None:
+    """
+        Notify 'actor_id' about appearance of 'partner_id'.
+        Effectively call MatchStage.prepare.
+        If everything is OK return notification-message.
+    """
+    result = await MatchStage.prepare(
+        state=get_state_by_id(actor_id),
+        target_id=partner_id,
+    )
+
+    logger.debug("%s was notified about %s", actor_id, partner_id)
+
+    return result
 
 
 async def notify_waiting_pool(new_user_id: int, logger: Logger) -> None:
@@ -44,28 +69,5 @@ async def notify_waiting_pool(new_user_id: int, logger: Logger) -> None:
 
         await remove_from_waiting_pool(target_id, logger=logger)
 
-        await send_partner(actor_id=target_id, partner_id=new_user.id, logger=logger)
-
-        logger.debug("%s was notified about %s", target, new_user)
-
-
-async def put_in_waiting_pool(actor_id: int, logger: Logger):
-    """Move user to 'waiting' status"""
-    result = await update_field(
-        id=actor_id,
-        field_name="in_waiting_pool",
-        value=True,
-    )
-    logger.debug("%s was put into waiting pool", actor_id)
-    return result
-
-
-async def remove_from_waiting_pool(actor_id: int, logger: Logger):
-    """Mark user as removed from waiting pool"""
-    result = await update_field(
-        id=actor_id,
-        field_name="in_waiting_pool",
-        value=False,
-    )
-    logger.debug("%s was removed from waiting_pool", actor_id)
-    return result
+        await notify_user_about_partner(
+            actor_id=target_id, partner_id=new_user.id, logger=logger)

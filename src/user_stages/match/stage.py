@@ -28,7 +28,7 @@ from .constants import PARTNERS_NOT_FOUND_TEXT
 from .keyboard import get_rated_kb
 from .callback_factory import RatingCallbackFactory
 from .logic import send_partner, check_and_process_mutual_sympathy
-from .waiting_pool import remove_from_waiting_pool, put_in_waiting_pool
+from .waiting_pool_utils import remove_from_waiting_pool, put_in_waiting_pool
 
 
 class MatchStage(Stage):
@@ -105,13 +105,19 @@ class MatchStage(Stage):
         return result
 
     @staticmethod
-    async def prepare(state: FSMContext):
-        """Search for a partner"""
+    async def prepare(state: FSMContext, target_id: int | None = None):
+        """
+            Try to find a partner and send his profile.
+            If partner was found earlier, his id can be passed ad 'target_id',
+            in that case user with target_id
+            will be proposed and there will be no search.
+        """
         await state.set_state(MatchStage.__prepare_state)
 
         actor_id: int = await get_id(state)
 
-        target_id: int | None = await find_partner_for(actor_id)
+        if target_id is None:
+            target_id: int | None = await find_partner_for(actor_id)
 
         if target_id is None:
             return await MatchStage.__process_no_partner(actor_id, state)
