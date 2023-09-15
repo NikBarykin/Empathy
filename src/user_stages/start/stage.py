@@ -51,6 +51,18 @@ class StartStage(Stage):
         return await following_stage.prepare(state)
 
     @staticmethod
+    async def process_has_private_forwards(user_id: int):
+        result = await execute_method(
+            SendMessage(
+                chat_id=user_id,
+                text=USER_HAS_PRIVATE_FORWARDS_TEXT,
+                parse_mode=USER_HAS_PRIVATE_FORWARDS_PARSE_MODE,
+            )
+        )
+        return result
+
+
+    @staticmethod
     async def process(
         message: Message,
         state: FSMContext,
@@ -64,13 +76,7 @@ class StartStage(Stage):
         user_id = message.from_user.id
 
         if await user_has_private_forwards(user_id):
-            return await execute_method(
-                SendMessage(
-                    chat_id=user_id,
-                    text=USER_HAS_PRIVATE_FORWARDS_TEXT,
-                    parse_mode=USER_HAS_PRIVATE_FORWARDS_PARSE_MODE,
-                )
-            )
+            return StartStage.process_user_has_private_forwards()
 
 
         await submit_user(User(id=user_id), logger=StartStage.__logger)

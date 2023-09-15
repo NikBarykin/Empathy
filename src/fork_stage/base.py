@@ -2,8 +2,13 @@ from typing import List, Type, Callable, Awaitable
 
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
+from aiogram.methods import EditMessageReplyMarkup
+
+from utils.execute_method import execute_method
 
 from stage import Stage
+
+from .alternatives_keyboard import get_keyboard_for_chosen_alternative
 
 
 class ForkStageBase(Stage):
@@ -36,6 +41,17 @@ class ForkStageBase(Stage):
         """Create a processor that just prepares chosen alternative-stage"""
         async def process_go_stage(callback: CallbackQuery, state: FSMContext):
             result = await destination_stage.prepare(state)
+            # leave only chosen alternative's name in keyboard
+            await execute_method(
+                EditMessageReplyMarkup(
+                    inline_message_id=callback.inline_message_id,
+                    reply_markup=get_keyboard_for_chosen_alternative(destination_stage),
+                )
+            )
             await callback.answer()
             return result
         return process_go_stage
+
+    # @staticmethod
+    # async def jump_previous_stage(prev_stage: Type[Stage]):
+    #     """Prepare previous stage and remove alternatives-keyboard
