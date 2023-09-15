@@ -13,6 +13,7 @@ from utils.keyboard import RowKeyboard, send_reply_kb
 from utils.order import make_stage_jumper
 from utils.execute_method import execute_method
 from utils.prev_stage import PREV_STAGE_TEXT
+from utils.logger import create_logger
 
 from .base import ForkStageBase
 from .alternatives_keyboard import get_keyboard_for_alternatives
@@ -36,6 +37,7 @@ def produce_fork_stage(
 
         __main_state = State(state="main_" + name)
         __prepare_state = State(state="prepare_" + name)
+        _logger = create_logger(name)
 
         @staticmethod
         def add_alternative(alternative: Type[Stage]) -> None:
@@ -98,7 +100,7 @@ def produce_fork_stage(
             method = await ForkStage._create_method(user_id)
 
             # execute method
-            result = await execute_method(method)
+            result = await execute_method(method, logger=ForkStage._logger)
 
             await state.set_state(ForkStage.__main_state)
 
