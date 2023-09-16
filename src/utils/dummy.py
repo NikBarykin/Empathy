@@ -10,7 +10,6 @@ async def __dummy_process_callback(callback: CallbackQuery, *args, **kwargs):
 
 class DummyCallbackFactory(CallbackData, prefix="dummy_does_nothing"):
     """Empty callback factory"""
-    pass
 
 
 def register_dummy_process_callback(router: Router):
