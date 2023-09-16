@@ -30,7 +30,6 @@ from .logic import user_has_private_forwards
 class StartStage(Stage):
     name: int = "start"
     description: str = COMMAND_DESCRIPTION
-    # __process_state = State(state="process_" + name)
     __logger: Logger = create_logger(name)
 
     @staticmethod
@@ -51,16 +50,16 @@ class StartStage(Stage):
         return await following_stage.prepare(state)
 
     @staticmethod
-    async def process_has_private_forwards(user_id: int):
+    async def process_user_has_private_forwards(user_id: int):
         result = await execute_method(
             SendMessage(
                 chat_id=user_id,
                 text=USER_HAS_PRIVATE_FORWARDS_TEXT,
                 parse_mode=USER_HAS_PRIVATE_FORWARDS_PARSE_MODE,
-            )
+            ),
+            logger=StartStage.__logger,
         )
         return result
-
 
     @staticmethod
     async def process(
@@ -69,15 +68,15 @@ class StartStage(Stage):
     ):
         """
             Restarts bot, clears aiogram-state,
-            updates some metadata in database, BUT doesn't remove user from database.
+            updates some metadata in database,
+            BUT doesn't remove user from database.
             Skips stages that are already presented by user.
             Also check that user doesn't have private forwards.
         """
         user_id = message.from_user.id
 
         if await user_has_private_forwards(user_id):
-            return StartStage.process_user_has_private_forwards()
-
+            return await StartStage.process_user_has_private_forwards(user_id)
 
         await submit_user(User(id=user_id), logger=StartStage.__logger)
         await reset_metadata(user_id=user_id)
