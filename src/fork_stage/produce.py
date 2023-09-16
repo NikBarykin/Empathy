@@ -118,7 +118,7 @@ def produce_fork_stage(
 
             for stage in ForkStage.alternatives:
                 router.callback_query.register(
-                    ForkStage.make_processor(stage),
+                    ForkStage.make_processor(stage, ForkStage._logger),
                     ForkStage.__main_state,
                     F.data==stage.name,
                 )
