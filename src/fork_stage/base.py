@@ -14,9 +14,9 @@ from .alternatives_keyboard import get_keyboard_for_chosen_alternative
 
 class ForkStageBase(Stage):
     """
-        Stage that is used to choose one of alternative-stages.
+        Stage that is used to choose one of alternative-stages
+        and proceed to chosen stage.
         Alternatives are displayed as inline-buttons attached to one message.
-
     """
     question_text_getter: str | Callable[[int], Awaitable[str]]
     """question-text or coroutine that builds question-text by user-id"""

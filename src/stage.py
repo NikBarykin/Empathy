@@ -8,9 +8,20 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 
 class Stage(StatesGroup):
-    """Basic class for 'stage' in EmpathyBot"""
+    """
+        Basic class for 'stage' in EmpathyBot.
+
+        Stage is and identity that accumulates
+        aiogram-fsm-states, static update-processors (handlers),
+        prepare-method and register-method.
+
+        For example there can be ProfileStage that sends user's profile to him,
+        waits for his action and processes it (for example freezes his profile).
+
+        NOTE that stages are represented BY CLASSES NOT OBJECTS.
+    """
     name: str = None
-    """Stage's name"""
+    """Stage's name, EVERY stage should have a UNIQUE name"""
 
     # global variables
     bot: Bot = None
@@ -18,19 +29,18 @@ class Stage(StatesGroup):
     dp: Dispatcher = None
 
     next_stage: Type[Stage] = None
-
     prev_stage: Type[Stage] = None
-    """
-        The stage where we got here from,
-        states automatically in 'go_stage' call
-    """
 
     @staticmethod
     async def prepare(state: FSMContext) -> None:
-        """form for prepare method"""
+        """
+            Do some preparations for the stage.
+            For example send a question-message to user
+            like "What is your name?" and then wait for the answer.
+        """
         raise NotImplementedError("Should be implemented in subclass")
 
     @staticmethod
     def register(router: Router) -> None:
-        """form for register method"""
+        """Register update-processors"""
         raise NotImplementedError("Should be implemented in subclass")
