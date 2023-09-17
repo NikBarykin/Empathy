@@ -17,6 +17,7 @@ from utils.keyboard import send_reply_kb
 from utils.prev_stage import PREV_STAGE_KB, PREV_STAGE_FILTER
 from utils.execute_method import execute_method
 from utils.order import make_stage_jumper
+from utils.logger import create_logger
 
 from .callback_factory import (
     CheckInterestCallbackFactory, SubmitCallbackFactory)
@@ -26,12 +27,14 @@ from .keyboard import get_question_kb, get_submit_kb
 
 
 def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
+    """Create and return interests-stage"""
     class InterestsStage(FieldStageBase):
         """User's interests"""
         name: str = stage_name_arg
         field_name: str = "interests"
-        __main_state = State(state="main")
-        __prepare_state = State(state="prepare")
+        __main_state = State(state="main_" + name)
+        __prepare_state = State(state="prepare_" + name)
+        __logger = create_logger(name)
 
         @staticmethod
         async def __get_checked_interests(state: FSMContext) -> List[str]:
@@ -39,7 +42,8 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
 
         @staticmethod
         async def __get_interests_from_db(user_id: int) -> List[str]:
-            return await get_field(id=user_id, field_name=InterestsStage.field_name)
+            return await get_field(
+                id=user_id, field_name=InterestsStage.field_name)
 
         @staticmethod
         async def check_field_already_presented(state: FSMContext) -> bool:
@@ -68,7 +72,8 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
                     chat_id=user_id,
                     text=QUESTION_TEXT,
                     reply_markup=get_question_kb(checked_interests),
-                )
+                ),
+                logger=InterestsStage.__logger
             )
 
             await state.set_state(InterestsStage.__main_state)
@@ -99,7 +104,8 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
                     message_id=callback.message.message_id,
                     text=QUESTION_TEXT,
                     reply_markup=get_question_kb(checked_interests),
-                )
+                ),
+                logger=InterestsStage.__logger,
             )
 
             if result is not None:
@@ -134,7 +140,9 @@ def make_interests_stage(stage_name_arg: str) -> Type[Stage]:
                     message_id=callback.message.message_id,
                     text=SUBMIT_TEXT,
                     reply_markup=get_submit_kb(checked_interests),
-                )
+                ),
+                logger=InterestsStage.__logger
+
             )
 
             await callback.answer()
