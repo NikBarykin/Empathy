@@ -3,7 +3,7 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
-from .constants import MIN_AGE, MAX_AGE
+from database.user import MIN_AGE, MAX_AGE
 
 
 class AgeFilter(BaseFilter):

@@ -9,16 +9,23 @@ import sqlalchemy as sa
 from .base import Base, CleanModel
 
 
+MAX_BIO_SZ: int = 1000
+MIN_AGE: int = 16
+MAX_AGE: int = 100
+MAX_NAME_SZ: int = 64
+
+
 class User(Base, CleanModel):
     """Model for a user of bot"""
+
     __tablename__ = "user_data"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
-    # get reed of magic number '32'
-    name: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    name: Mapped[Optional[str]] = mapped_column(
+        String(MAX_NAME_SZ), nullable=True)
+
     age: Mapped[Optional[int]]
-    # TODO:
     sex: Mapped[Optional[str]]
     city: Mapped[Optional[str]]
     photo: Mapped[Optional[str]]
@@ -28,9 +35,8 @@ class User(Base, CleanModel):
 
     relationship_goal: Mapped[Optional[str]]
 
-    # TODO: MIN_AGE, MAX_AGE constants
-    min_partner_age: Mapped[int] = mapped_column(sa.Integer, default=0)
-    max_partner_age: Mapped[int] = mapped_column(sa.Integer, default=100)
+    min_partner_age: Mapped[int] = mapped_column(sa.Integer, default=MIN_AGE)
+    max_partner_age: Mapped[int] = mapped_column(sa.Integer, default=MAX_AGE)
 
     # metainformation
     # TODO: move to other class
