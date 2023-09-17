@@ -4,7 +4,7 @@
 """
 from logging import Logger
 
-from aiogram.types import Message
+from aiogram.types import Message, UserProfilePhotos
 from aiogram.methods.base import TelegramMethod
 from aiogram.exceptions import TelegramForbiddenError
 
@@ -14,7 +14,7 @@ from engine.user import update_field
 
 
 async def execute_method(
-    method: TelegramMethod[Message] | TelegramMethod[bool],
+    method: TelegramMethod[Message] | TelegramMethod[bool] | TelegramMethod[UserProfilePhotos],
     logger: Logger | None = None,
 ) -> Message | bool | None:
     """
