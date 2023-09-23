@@ -32,7 +32,7 @@ class VerificationStage(Stage):
         Stage in which moderators verify or reset user's profiles.
         (It is similar to Moderate-Stage but simpler).
     """
-    name: str = "верификация пользователей"
+    name: str = "Верификация пользователей"
     __prepare_state = State(state="prepare_" + name)
     __verification_state = State(state="verification_" + name)
     __logger: Logger = create_logger(name)
@@ -70,6 +70,20 @@ class VerificationStage(Stage):
             reply_markup=await get_query_kb(user_id=user_id),
             logger=VerificationStage.__logger,
         )
+
+        if profile_msg is None:
+            # error, so mark user as verified to proceed further
+            # TODO: maybe this section should be changed
+            await update_field(
+                id=user_id,
+                field_name="verified",
+                value=True,
+            )
+            VerificationStage.__logger.warning(
+                "User %s was verified by %s automatically because displaying his profile failed",
+                user_id, moderator_id,
+            )
+            return await VerificationStage.prepare(state)
 
         await state.set_state(VerificationStage.__verification_state)
 
