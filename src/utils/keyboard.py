@@ -1,14 +1,16 @@
 """Managing keyboards"""
 from logging import Logger
-from typing import Iterable
 
 from aiogram.types import (
-    ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, Message)
+    ReplyKeyboardMarkup, ReplyKeyboardRemove,
+    KeyboardButton, Message,
+    InlineKeyboardMarkup, InlineKeyboardButton,
+)
+
 from aiogram.methods import SendMessage, DeleteMessage
 
-from stage import Stage
-
 from utils.execute_method import execute_method
+from utils.dummy import DummyCallbackFactory
 
 
 class RowKeyboard(ReplyKeyboardMarkup):
@@ -76,3 +78,24 @@ async def remove_reply_keyboard(
         logger=logger,
     )
     return message
+
+
+class DummyInlineKeyboard(InlineKeyboardMarkup):
+    """
+        Inline keyboard with one column
+        (i.e. multiple rows each contains one button),
+        containing buttons with given texts that ignore any clicks.
+    """
+    def __init__(self, *button_texts, **kwargs):
+        super().__init__(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=button_text,
+                        callback_data=DummyCallbackFactory().pack(),
+                    )
+                ]
+                for button_text in button_texts
+            ],
+            **kwargs,
+        )

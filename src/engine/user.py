@@ -2,19 +2,31 @@
 from logging import Logger
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, ScalarResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import class_mapper
 
 from stage import Stage
 from database.user import User
 
 
-async def get_user_by_id_with_session(id: int, session: AsyncSession) -> User:
+async def __get_user_by_id_with_session_impl(id: int, session: AsyncSession) -> ScalarResult[User]:
     stmt = select(User).where(User.id == id)
     async with session.begin():
         result = await session.execute(stmt.limit(1))
-    return result.scalars().one()
+    return result.scalars()
+
+
+async def get_user_by_id_with_session(id: int, session: AsyncSession) -> User:
+    return (await __get_user_by_id_with_session_impl(id, session)).one()
+
+
+async def get_user_or_none_by_id_with_session(
+    id: int,
+    session: AsyncSession,
+) -> User | None:
+    return (await __get_user_by_id_with_session_impl(id, session)).one_or_none()
 
 
 async def get_user_by_id(id: int) -> User:
@@ -56,6 +68,30 @@ async def submit_user(user: User, logger: Logger | None) -> None:
     except IntegrityError as e:
         if logger is not None:
             logger.info("user with id %s already exists", user.id)
+
+
+async def reset_fields(user_id: int) -> None:
+    """
+        If there is a user with user_id in database
+        find him and reset all fields that have default values
+        (and also set all nullable columns to NULL).
+    """
+    async with Stage.async_session() as session:
+        user: User | None = (
+            await get_user_or_none_by_id_with_session(user_id, session))
+        if user is None:
+            # User with user_id doesn't exist
+            return
+
+        mapper = class_mapper(User)
+
+        async with session.begin():
+            for col in mapper.columns:
+                # reset field that have default values or nullable
+                if col.default is not None:
+                    setattr(user, col.key, col.default.arg)
+                elif col.nullable:
+                    setattr(user, col.key, None)
 
 
 async def reset_metadata(user_id: int) -> None:

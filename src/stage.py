@@ -32,11 +32,13 @@ class Stage(StatesGroup):
     prev_stage: Type[Stage] = None
 
     @staticmethod
-    async def prepare(state: FSMContext) -> None:
+    async def prepare(state: FSMContext, *args, **kwargs) -> None:
         """
             Do some preparations for the stage.
             For example send a question-message to user
             like "What is your name?" and then wait for the answer.
+
+            Can have additional helper-arguments.
         """
         raise NotImplementedError("Should be implemented in subclass")
 
